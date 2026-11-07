@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 # Wallpaper Engine's compiled shader cache
 *.dxs
+# pipeline scratch output (re-created by the scripts)
+optimized/
 .DS_Store
 Thumbs.db
 desktop.ini

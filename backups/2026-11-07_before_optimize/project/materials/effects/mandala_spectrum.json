@@ -1,0 +1,11 @@
+{
+	"passes": [
+		{
+			"shader": "effects/mandala_spectrum",
+			"blending": "normal",
+			"depthtest": "disabled",
+			"depthwrite": "disabled",
+			"cullmode": "nocull"
+		}
+	]
+}

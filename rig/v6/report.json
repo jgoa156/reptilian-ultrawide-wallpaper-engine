@@ -1,0 +1,9 @@
+{
+ "tip_px": 150.0,
+ "profile_power": 1.4,
+ "blur_px": 40,
+ "margin_px": 20,
+ "ink_strain": 0.164,
+ "max_compression": 0.566,
+ "followstrength": 0.175
+}

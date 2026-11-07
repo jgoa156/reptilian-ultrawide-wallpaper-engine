@@ -1,0 +1,11 @@
+{
+	"passes": [
+		{
+			"shader": "effects/lens_fold_clip",
+			"blending": "normal",
+			"depthtest": "disabled",
+			"depthwrite": "disabled",
+			"cullmode": "nocull"
+		}
+	]
+}

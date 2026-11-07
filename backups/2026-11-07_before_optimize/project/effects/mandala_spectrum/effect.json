@@ -1,0 +1,17 @@
+{
+	"version": 1,
+	"replacementkey": "mandala_spectrum",
+	"name": "Spectrum mandala",
+	"description": "13 spectrum-driven black pieces of the Choronzon mandala, spinning; full when idle, sliced with music; bulge, datamosh, slice glitch",
+	"group": "localeffects",
+	"passes": [
+		{
+			"material": "materials/effects/mandala_spectrum.json"
+		}
+	],
+	"dependencies": [
+		"materials/effects/mandala_spectrum.json",
+		"shaders/effects/mandala_spectrum.frag",
+		"shaders/effects/mandala_spectrum.vert"
+	]
+}

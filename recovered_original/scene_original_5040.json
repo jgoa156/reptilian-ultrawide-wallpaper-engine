@@ -1,0 +1,1238 @@
+{
+	"camera" : 
+	{
+		"center" : "0.00000 0.00000 -1.00000",
+		"eye" : "0.00000 0.00000 0.00000",
+		"up" : "0.00000 1.00000 0.00000"
+	},
+	"general" : 
+	{
+		"ambientcolor" : "0.30000 0.30000 0.30000",
+		"bloom" : false,
+		"bloomhdrfeather" : 0.1,
+		"bloomhdriterations" : 8,
+		"bloomhdrscatter" : 1.619,
+		"bloomhdrstrength" : 2.0,
+		"bloomhdrthreshold" : 1.0,
+		"bloomstrength" : 2.0,
+		"bloomthreshold" : 0.64999998,
+		"bloomtint" : "1.00000 1.00000 1.00000",
+		"camerafade" : true,
+		"cameraparallax" : false,
+		"cameraparallaxamount" : 0.5,
+		"cameraparallaxdelay" : 0.1,
+		"cameraparallaxmouseinfluence" : 0.5,
+		"camerapreview" : true,
+		"camerashake" : false,
+		"camerashakeamplitude" : 0.5,
+		"camerashakeroughness" : 1.0,
+		"camerashakespeed" : 3.0,
+		"clearcolor" : "0.87059 0.87059 0.87059",
+		"clearenabled" : true,
+		"farz" : 10000.0,
+		"fov" : 50.0,
+		"gravitydirection" : "0.00000 -1.00000 0.00000",
+		"gravitystrength" : 1.0,
+		"hdr" : false,
+		"nearz" : 0.0099999998,
+		"orthogonalprojection" : 
+		{
+			"height" : 2160,
+			"width" : 5040
+		},
+		"perspectiveoverridefov" : 30.0,
+		"skylightcolor" : "0.30000 0.30000 0.30000",
+		"winddirection" : "0.70700 0.70700 0.00000",
+		"windenabled" : false,
+		"windstrength" : 1.0,
+		"zoom" : 1.0
+	},
+	"objects" : 
+	[
+		{
+			"alpha" : 0.1,
+			"castshadow" : false,
+			"effects" : 
+			[
+				{
+					"file" : "effects/spin/effect.json",
+					"id" : 379,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"angle" : 0,
+								"center" : "0.5 0.5",
+								"feather" : 0.013,
+								"phase" : 0,
+								"ratio" : 1,
+								"size" : 0.49925998,
+								"speed" : 0.0099999998
+							},
+							"id" : 380
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/workshop/2423877731/chromatic_aberration/effect.json",
+					"id" : 167,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"combos" : 
+							{
+								"AUDIOPROCESSING" : 3
+							},
+							"constantshadervalues" : 
+							{
+								"Alpha" : 1,
+								"Blue Channel Offset" : -0.050000001,
+								"Green Channel Offset" : -0.050000001,
+								"Red Channel Offset" : -0.050000001,
+								"audioamount" : 1.5,
+								"audiobounds" : "0.5 1.0",
+								"audioexponent" : 0.050000001,
+								"frequencymax" : 2,
+								"frequencymin" : 0.0
+							},
+							"id" : 168
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/pulse/effect.json",
+					"id" : 158,
+					"name" : "Audio Off",
+					"passes" : 
+					[
+						{
+							"combos" : 
+							{
+								"PULSEALPHA" : 1
+							},
+							"constantshadervalues" : 
+							{
+								"amount" : 2,
+								"bounds" : "0 1",
+								"noiseamount" : 0,
+								"noisespeed" : 0.5,
+								"phase" : 0,
+								"power" : 2,
+								"speed" : 0.5,
+								"tinthigh" : "0.13333333333333333 0.13333333333333333 0.13333333333333333",
+								"tintlow" : "0.26666666666666666 0.26666666666666666 0.26666666666666666"
+							},
+							"id" : 159
+						}
+					],
+					"visible" : 
+					{
+						"script" : "'use strict';\n\nlet isMusicPlaying = false; // Assume no music is playing by default\n\n/**\n * Initializes the audio listener when the environment is ready.\n */\nexport function initializeAudioListener() {\n    if (typeof window !== 'undefined' && window.wallpaperRegisterAudioListener) {\n        // Register the audio listener to track if music is playing\n        window.wallpaperRegisterAudioListener(function(audioData) {\n            // Update isMusicPlaying based on audio volume\n            console.log(\"Window detected: Audio Off\");\n            isMusicPlaying = audioData.volume > 0; // true if volume is greater than 0\n        });\n    } else {\n        console.log(\"Window not detected: Audio Off\");\n    }\n}\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @param {Boolean} runWhenMusicPlaying - if true, the effect remains visible when music is playing; if false, it becomes invisible when music is playing\n * @return {Boolean} - update current property value based on whether music is playing\n */\nexport function update(value, runWhenMusicPlaying) {\n    // If music is playing, hide the effect unless runWhenMusicPlaying is true\n    if (isMusicPlaying) {\n        // Music is playing\n        return runWhenMusicPlaying ? value : false; // Show effect if allowed to run with music\n    }\n    // Music is not playing\n    return value; // Show effect when no music is playing\n}\n\nconst shouldRunWhenMusicPlaying = false; // Set to true to allow the effect to run while music is playing\nconst isVisible = update(true, shouldRunWhenMusicPlaying);\n\n",
+						"value" : true
+					}
+				},
+				{
+					"file" : "effects/pulse/effect.json",
+					"id" : 382,
+					"name" : "Audio On",
+					"passes" : 
+					[
+						{
+							"combos" : 
+							{
+								"AUDIOPROCESSING" : 3,
+								"BLENDMODE" : 1,
+								"PULSEALPHA" : 1
+							},
+							"constantshadervalues" : 
+							{
+								"amount" : 2,
+								"audioamount" : 2,
+								"audiobounds" : "0.5 1.0",
+								"audioexponent" : 0.15000001,
+								"bounds" : "0 1",
+								"frequencymax" : 1,
+								"frequencymin" : 0.0,
+								"noiseamount" : 0,
+								"noisespeed" : 0,
+								"phase" : 0,
+								"power" : 0.25,
+								"speed" : 1,
+								"tinthigh" : "0.9529411764705882 0.9529411764705882 0.9529411764705882",
+								"tintlow" : "1 1 1"
+							},
+							"id" : 383
+						}
+					],
+					"visible" : 
+					{
+						"script" : "/*'use strict';\n\nlet isMusicPlaying = false; // Assume no music is playing by default\n\n/**\n * Initializes the audio listener when the environment is ready.\n */\n/*export function initializeAudioListener() {\n    if (typeof window !== 'undefined' && window.wallpaperRegisterAudioListener) {\n        // Register the audio listener to track if music is playing\n        window.wallpaperRegisterAudioListener(function(audioData) {\n            // Update isMusicPlaying based on audio volume\n            console.log(\"Window detected: Audio On\");\n            isMusicPlaying = audioData.volume > 0; // true if volume is greater than 0\n        });\n    } else {\n        console.log(\"Window not detected: Audio Off\");\n    }\n}\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @param {Boolean} runWhenMusicPlaying - if true, the effect remains visible when music is playing; if false, it becomes invisible when music is playing\n * @return {Boolean} - update current property value based on whether music is playing\n */\n/*export function update(value, runWhenMusicPlaying) {\n    // If music is playing, hide the effect unless runWhenMusicPlaying is true\n    if (isMusicPlaying) {\n        // Music is playing\n        return runWhenMusicPlaying ? value : false; // Show effect if allowed to run with music\n    }\n    // Music is not playing\n    return value; // Show effect when no music is playing\n}\n\nconst shouldRunWhenMusicPlaying = true; // Set to true to allow the effect to run while music is playing\nconst isVisible = update(true, shouldRunWhenMusicPlaying);*/\n\n",
+						"value" : false
+					}
+				}
+			],
+			"id" : 377,
+			"image" : "models/kaleidoscope10_15_24120703AM.json",
+			"name" : "BG",
+			"origin" : "2520.00000 1080.00000 0.00000",
+			"scale" : "2.00000 2.00000 1.00000",
+			"size" : "1500.00000 1500.00000"
+		},
+		{
+			"castshadow" : false,
+			"effects" : 
+			[
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 165,
+					"name" : "(Anim)  \"Cabelo\"",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.17,
+								"center" : 0.069552071,
+								"feather" : 0.0099999998,
+								"phase" : 0.41999999,
+								"point0" : "1.00030 0.22996",
+								"point1" : "0.77856 0.27462",
+								"size" : 0.50646144,
+								"speed" : -1.3
+							},
+							"id" : 166
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 170,
+					"name" : "(Anim) Cauda",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.02,
+								"center" : 3.5765839,
+								"feather" : 0.027000001,
+								"phase" : 0.25999999,
+								"point0" : "0.80784 0.99645",
+								"point1" : "0.72999 1.02821",
+								"size" : 1.0198452,
+								"speed" : -1.04
+							},
+							"id" : 171
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 175,
+					"name" : "(Anim) Cauda (2)",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.1,
+								"center" : 0.61804801,
+								"feather" : 0.027000001,
+								"phase" : 0.54000002,
+								"point0" : "0.86000 0.68256",
+								"point1" : "0.98011 1.17403",
+								"size" : 0.60000002,
+								"speed" : -1.09
+							},
+							"id" : 176
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id" : 140,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"Distorsion 1" : 0.5,
+								"Distorsion 2" : 0,
+								"center" : "0.88288 0.55208",
+								"chromaticAberration" : 1,
+								"general" : 1,
+								"size" : 0.4151639,
+								"ui_editor_properties_opacity" : 1,
+								"zoom" : 1
+							},
+							"id" : 143
+						}
+					],
+					"visible" : 
+					{
+						"script" : "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value" : true
+					}
+				}
+			],
+			"id" : 92,
+			"image" : "models/sprite bgpng_Prancheta 1.json",
+			"name" : "W",
+			"origin" : "2520.00000 1082.00000 0.00000",
+			"size" : "5040.00000 2160.00000"
+		},
+		{
+			"alpha" : 0.36000001,
+			"castshadow" : false,
+			"effects" : 
+			[
+				{
+					"file" : "effects/pulse/effect.json",
+					"id" : 655,
+					"name" : "(C) Música",
+					"passes" : 
+					[
+						{
+							"combos" : 
+							{
+								"AUDIOPROCESSING" : 1,
+								"PULSEALPHA" : 1
+							},
+							"constantshadervalues" : 
+							{
+								"audioamount" : 2,
+								"audiobounds" : "0.3 1.5",
+								"audioexponent" : 0.15000001,
+								"frequencymax" : 10,
+								"frequencymin" : 0.0,
+								"tinthigh" : "0.33725490196078434 0.28627450980392155 1",
+								"tintlow" : "0.023529411764705882 1 0.9686274509803922"
+							},
+							"id" : 656
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 112,
+					"name" : "(Anim)  \"Cabelo\"",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.17,
+								"center" : 0.069552071,
+								"feather" : 0.0099999998,
+								"phase" : 0.41999999,
+								"point0" : "1.00030 0.22996",
+								"point1" : "0.77856 0.27462",
+								"size" : 0.50646144,
+								"speed" : -1.3
+							},
+							"id" : 113
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 129,
+					"name" : "(Anim) Cauda",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.02,
+								"center" : 3.5765839,
+								"feather" : 0.027000001,
+								"phase" : 0.25999999,
+								"point0" : "0.80784 0.99645",
+								"point1" : "0.72999 1.02821",
+								"size" : 1.0198452,
+								"speed" : -1.04
+							},
+							"id" : 130
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 147,
+					"name" : "(Anim) Cauda (2)",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.1,
+								"center" : 0.61804801,
+								"feather" : 0.027000001,
+								"phase" : 0.54000002,
+								"point0" : "0.86000 0.68256",
+								"point1" : "0.98011 1.17403",
+								"size" : 0.60000002,
+								"speed" : -1.09
+							},
+							"id" : 148
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id" : 132,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"Distorsion 1" : 0.5,
+								"Distorsion 2" : 0,
+								"center" : "0.88288 0.55208",
+								"chromaticAberration" : 1,
+								"general" : 1,
+								"size" : 0.4151639,
+								"ui_editor_properties_opacity" : 1,
+								"zoom" : 1
+							},
+							"id" : 133
+						}
+					],
+					"visible" : 
+					{
+						"script" : "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value" : true
+					}
+				}
+			],
+			"id" : 78,
+			"image" : "models/C.json",
+			"name" : "C",
+			"origin" : "2520.00000 1082.00000 0.00000",
+			"scale" : "1.00300 1.00300 1.00000",
+			"size" : "5040.00000 2160.00000"
+		},
+		{
+			"alpha" : 0.66000003,
+			"castshadow" : false,
+			"effects" : 
+			[
+				{
+					"file" : "effects/pulse/effect.json",
+					"id" : 669,
+					"name" : "(M) Música",
+					"passes" : 
+					[
+						{
+							"combos" : 
+							{
+								"AUDIOPROCESSING" : 1,
+								"PULSEALPHA" : 1
+							},
+							"constantshadervalues" : 
+							{
+								"audioamount" : 2,
+								"audiobounds" : "0 1.5",
+								"audioexponent" : 0.34999999,
+								"frequencymax" : 8,
+								"frequencymin" : 0,
+								"tinthigh" : 
+								{
+									"script" : "'use strict';\n\nimport * as WEColor from 'WEColor';\n\nexport function startGlowingEffect(baseColor, glowIntensity = 0.5, glowSpeed = 0.01, interval = 16) {\n    function updateGlowingColor() {\n        const glowingColor = createGlowingColor(baseColor, glowIntensity, glowSpeed);\n        console.log(\"Glowing Color:\", glowingColor);\n        \n        // Manually set a timeout to emulate an interval\n        setTimeout(updateGlowingColor, interval);\n    }\n\n    updateGlowingColor();\n}\n\nfunction createGlowingColor(baseColor, glowIntensity, glowSpeed) {\n    const glowFactor = Math.abs(Math.sin(Date.now() * glowSpeed)) * glowIntensity;\n    return applyGlowEffect(baseColor, glowFactor);\n}\n\nfunction applyGlowEffect(color, glowFactor) {\n    const r = calculateGlow(color.r, glowFactor);\n    const g = calculateGlow(color.g, glowFactor);\n    const b = calculateGlow(color.b, glowFactor);\n    \n    return `rgb(${r}, ${g}, ${b})`;\n}\n\nfunction calculateGlow(baseValue, glowFactor) {\n    return Math.min(255, Math.round(baseValue + glowFactor * (255 - baseValue)));\n}\n\n// Usage example:\nstartGlowingEffect({ r: 255, g: 60, b: 60 });\n",
+									"user" : "colorhigh",
+									"value" : "1.00000 0.23529 0.23529"
+								},
+								"tintlow" : 
+								{
+									"script" : "'use strict';\n\nimport * as WEColor from 'WEColor';\n\nexport function startGlowingEffect(baseColor, glowIntensity = 0.5, glowSpeed = 0.01, interval = 16) {\n    function updateGlowingColor() {\n        const glowingColor = createGlowingColor(baseColor, glowIntensity, glowSpeed);\n        console.log(\"Glowing Color:\", glowingColor);\n        \n        // Manually set a timeout to emulate an interval\n        setTimeout(updateGlowingColor, interval);\n    }\n\n    updateGlowingColor();\n}\n\nfunction createGlowingColor(baseColor, glowIntensity, glowSpeed) {\n    const glowFactor = Math.abs(Math.sin(Date.now() * glowSpeed)) * glowIntensity;\n    return applyGlowEffect(baseColor, glowFactor);\n}\n\nfunction applyGlowEffect(color, glowFactor) {\n    const r = calculateGlow(color.r, glowFactor);\n    const g = calculateGlow(color.g, glowFactor);\n    const b = calculateGlow(color.b, glowFactor);\n    \n    return `rgb(${r}, ${g}, ${b})`;\n}\n\nfunction calculateGlow(baseValue, glowFactor) {\n    return Math.min(255, Math.round(baseValue + glowFactor * (255 - baseValue)));\n}\n\n// Usage example:\nstartGlowingEffect({ r: 255, g: 60, b: 60 });\n",
+									"user" : "colorlow",
+									"value" : "1.00000 0.55294 0.57255"
+								}
+							},
+							"id" : 670
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/motionblur/effect.json",
+					"id" : 790,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"rate" : 1
+							},
+							"id" : 791
+						},
+						{
+							"id" : 38
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 106,
+					"name" : "(Anim)  \"Cabelo\"",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.17,
+								"center" : 0.069552071,
+								"feather" : 0.0099999998,
+								"phase" : 0.41999999,
+								"point0" : "1.00030 0.22996",
+								"point1" : "0.77856 0.27462",
+								"size" : 0.50646144,
+								"speed" : -1.3
+							},
+							"id" : 107
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 123,
+					"name" : "(Anim) Cauda",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.02,
+								"center" : 3.5765839,
+								"feather" : 0.027000001,
+								"phase" : 0.25999999,
+								"point0" : "0.80784 0.99645",
+								"point1" : "0.72999 1.02821",
+								"size" : 1.0198452,
+								"speed" : -1.04
+							},
+							"id" : 124
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 141,
+					"name" : "(Anim) Cauda (2)",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.1,
+								"center" : 0.61804801,
+								"feather" : 0.027000001,
+								"phase" : 0.54000002,
+								"point0" : "0.86000 0.68256",
+								"point1" : "0.98011 1.17403",
+								"size" : 0.60000002,
+								"speed" : -1.09
+							},
+							"id" : 142
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id" : 122,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"Distorsion 1" : 0.5,
+								"Distorsion 2" : 0,
+								"center" : "0.88288 0.55208",
+								"chromaticAberration" : 1,
+								"general" : 1,
+								"size" : 0.4151639,
+								"ui_editor_properties_opacity" : 1,
+								"zoom" : 1
+							},
+							"id" : 125
+						}
+					],
+					"visible" : 
+					{
+						"script" : "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value" : true
+					}
+				}
+			],
+			"id" : 74,
+			"image" : "models/M.json",
+			"name" : "M",
+			"origin" : "2505.00000 1080.00000 0.00000",
+			"scale" : "1.01000 1.01000 1.00000",
+			"size" : "5040.00000 2160.00000"
+		},
+		{
+			"alpha" : 0.15000001,
+			"castshadow" : false,
+			"effects" : 
+			[
+				{
+					"file" : "effects/pulse/effect.json",
+					"id" : 274,
+					"name" : "(C) Música",
+					"passes" : 
+					[
+						{
+							"combos" : 
+							{
+								"AUDIOPROCESSING" : 2,
+								"PULSEALPHA" : 1
+							},
+							"constantshadervalues" : 
+							{
+								"audioamount" : 2,
+								"audiobounds" : "0.3 1.5",
+								"audioexponent" : 0.25,
+								"frequencymax" : 4,
+								"frequencymin" : 0.0,
+								"tinthigh" : "0.42745098039215684 1 0.9764705882352941",
+								"tintlow" : "0.5137254901960784 1 0.984313725490196"
+							},
+							"id" : 275
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 101,
+					"name" : "(Anim)  \"Cabelo\"",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.17,
+								"center" : 0.069552071,
+								"feather" : 0.0099999998,
+								"phase" : 0.41999999,
+								"point0" : "1.00030 0.22996",
+								"point1" : "0.77856 0.27462",
+								"size" : 0.50646144,
+								"speed" : -1.3
+							},
+							"id" : 0
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 117,
+					"name" : "(Anim) Cauda",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.02,
+								"center" : 3.5765839,
+								"feather" : 0.027000001,
+								"phase" : 0.25999999,
+								"point0" : "0.80784 0.99645",
+								"point1" : "0.72999 1.02821",
+								"size" : 1.0198452,
+								"speed" : -1.04
+							},
+							"id" : 118
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 135,
+					"name" : "(Anim) Cauda (2)",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.1,
+								"center" : 0.61804801,
+								"feather" : 0.027000001,
+								"phase" : 0.54000002,
+								"point0" : "0.86000 0.68256",
+								"point1" : "0.98011 1.17403",
+								"size" : 0.60000002,
+								"speed" : -1.09
+							},
+							"id" : 136
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id" : 114,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"Distorsion 1" : 0.5,
+								"Distorsion 2" : 0,
+								"center" : "0.88288 0.55208",
+								"chromaticAberration" : 1,
+								"general" : 1,
+								"size" : 0.4151639,
+								"ui_editor_properties_opacity" : 1,
+								"zoom" : 1
+							},
+							"id" : 115
+						}
+					],
+					"visible" : 
+					{
+						"script" : "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value" : true
+					}
+				}
+			],
+			"id" : 235,
+			"image" : "models/C.json",
+			"name" : "C",
+			"origin" : "2520.00000 1082.00000 0.00000",
+			"scale" : "1.00300 1.00300 1.00000",
+			"size" : "5040.00000 2160.00000"
+		},
+		{
+			"castshadow" : false,
+			"effects" : 
+			[
+				{
+					"file" : "effects/spin/effect.json",
+					"id" : 531,
+					"name" : "Olhar #1",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"angle" : 0.82068151,
+								"center" : "0.83175 0.42204",
+								"feather" : 0.0020000001,
+								"phase" : 0,
+								"ratio" : 0.7697919,
+								"size" : 0.01338407,
+								"speed" : 0.51999998
+							},
+							"id" : 532
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/spin/effect.json",
+					"id" : 533,
+					"name" : "Olho #2",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"angle" : 1.1971339,
+								"center" : "0.84614 0.30772",
+								"feather" : 0.0020000001,
+								"phase" : 0,
+								"ratio" : 1.0205573,
+								"size" : 0.016285263,
+								"speed" : 0.5
+							},
+							"id" : 534
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/iris/effect.json",
+					"id" : 535,
+					"name" : "Olho menor #1",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"noiseamount" : 0.5,
+								"phase" : 0,
+								"rough" : 0.2,
+								"scale" : "1 1",
+								"speed" : 1
+							},
+							"id" : 536,
+							"textures" : [ null, "masks/iris_mask_13f08b0d" ]
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/foliagesway/effect.json",
+					"id" : 537,
+					"name" : "Guelras",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"phase" : 0.83999997,
+								"power" : 2,
+								"ratio" : 2.77,
+								"scale" : 0.1,
+								"scrolldirection" : 0,
+								"speeduv" : 2.2,
+								"strength" : 0.31
+							},
+							"id" : 538,
+							"textures" : [ null, "masks/foliagesway_mask_f6655407", null ]
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/blurradial/effect.json",
+					"id" : 539,
+					"name" : "Guelras (2)",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"center" : "0.5 0.5",
+								"scale" : 0.1
+							},
+							"id" : 540,
+							"textures" : [ null, "masks/blur_radial_gaussian_mask_4da4329b" ]
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/iris/effect.json",
+					"id" : 541,
+					"name" : "Little Eyes",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"noiseamount" : 0.0099999998,
+								"phase" : 0.07,
+								"rough" : 0.2,
+								"scale" : "0.38 0.38",
+								"speed" : 0.50999999
+							},
+							"id" : 542,
+							"textures" : [ null, "masks/iris_mask_71a51a31" ]
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/edgedetection/effect.json",
+					"id" : 543,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"combos" : 
+							{
+								"BLENDMODE" : 3
+							},
+							"constantshadervalues" : 
+							{
+								"alpha" : 0.70999998,
+								"brightness" : 1,
+								"detectmultiply" : 5,
+								"detectthreshold" : 0.83999997,
+								"outlinecolor" : "0.7607843137254902 0.7607843137254902 0.7607843137254902",
+								"outlinecolorbg" : "1 1 1",
+								"size" : 0.41999999
+							},
+							"id" : 544
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/twirl/effect.json",
+					"id" : 545,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 1,
+								"angle" : 0,
+								"center" : "0.81326 0.36239",
+								"feather" : 0.0020000001,
+								"phase" : 0,
+								"ratio" : 1,
+								"size" : 0.012416435,
+								"speed" : -1.15
+							},
+							"id" : 546
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/waterwaves/effect.json",
+					"id" : 547,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"direction" : 2.2614093,
+								"exponent" : 1,
+								"scale" : 200,
+								"speed" : 5,
+								"strength" : 0.02
+							},
+							"id" : 548,
+							"textures" : [ null, "masks/waterwaves_mask_c13e3058" ]
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/shake/effect.json",
+					"id" : 549,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"bounds" : "0 1",
+								"friction" : "1 1",
+								"speed" : 1,
+								"strength" : 0.1
+							},
+							"id" : 550,
+							"textures" : [ null, "masks/shake_mask_537bc4d9" ]
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/shake/effect.json",
+					"id" : 551,
+					"name" : "Balance (General)",
+					"passes" : 
+					[
+						{
+							"combos" : 
+							{
+								"DIRECTION" : 1
+							},
+							"constantshadervalues" : 
+							{
+								"bounds" : "0 1",
+								"friction" : "1 1",
+								"speed" : 3.1800001,
+								"strength" : 0.039999999
+							},
+							"id" : 552,
+							"textures" : [ null, "masks/shake_mask_647b9b30" ]
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/spin/effect.json",
+					"id" : 553,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"angle" : 0,
+								"center" : "0.96197 0.14303",
+								"feather" : 0.0020000001,
+								"phase" : 0,
+								"ratio" : 1,
+								"size" : 0.0058834902,
+								"speed" : 1
+							},
+							"id" : 554
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/spin/effect.json",
+					"id" : 555,
+					"name" : "Mini Eye #2",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"angle" : -0.5014165,
+								"center" : "0.91400 0.24951",
+								"feather" : 0.0020000001,
+								"phase" : 0,
+								"ratio" : 0.92496943,
+								"size" : 0.0069296947,
+								"speed" : 1
+							},
+							"id" : 556
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/foliagesway/effect.json",
+					"id" : 557,
+					"name" : "Strings Hair",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"phase" : 0.5,
+								"power" : 1.37,
+								"ratio" : 2.25,
+								"scale" : 0.22,
+								"scrolldirection" : 2.8540409,
+								"speeduv" : 5,
+								"strength" : 0.20999999
+							},
+							"id" : 558,
+							"textures" : [ null, "masks/foliagesway_mask_135029a1", null ]
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/foliagesway/effect.json",
+					"id" : 559,
+					"name" : "Strings Back",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"phase" : 1.55,
+								"power" : 1,
+								"ratio" : 0.30000001,
+								"scale" : 0.050000001,
+								"scrolldirection" : 1.6494381,
+								"speeduv" : 4.8000002,
+								"strength" : 0.34999999
+							},
+							"id" : 560,
+							"textures" : [ null, "masks/foliagesway_mask_d3944eb2", null ]
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/pulse/effect.json",
+					"id" : 563,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.75,
+								"bounds" : "0 1",
+								"noiseamount" : 0,
+								"noisespeed" : 0.5,
+								"phase" : 0,
+								"power" : 1,
+								"speed" : 3,
+								"tinthigh" : "1 1 1",
+								"tintlow" : "1 1 1"
+							},
+							"id" : 564,
+							"textures" : [ null, null, "masks/pulse_mask_5a251794" ]
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 565,
+					"name" : "(Anim)  \"Cabelo\"",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.17,
+								"center" : 0.069552071,
+								"feather" : 0.0099999998,
+								"phase" : 0.41999999,
+								"point0" : "1.00030 0.22996",
+								"point1" : "0.77856 0.27462",
+								"size" : 0.50646144,
+								"speed" : -1.3
+							},
+							"id" : 566
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 567,
+					"name" : "(Anim) Cauda",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.02,
+								"center" : 3.5765839,
+								"feather" : 0.027000001,
+								"phase" : 0.25999999,
+								"point0" : "0.80784 0.99645",
+								"point1" : "0.72999 1.02821",
+								"size" : 1.0198452,
+								"speed" : -1.04
+							},
+							"id" : 568
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/swing/effect.json",
+					"id" : 569,
+					"name" : "(Anim) Cauda (2)",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.1,
+								"center" : 0.61804801,
+								"feather" : 0.027000001,
+								"phase" : 0.54000002,
+								"point0" : "0.86000 0.68256",
+								"point1" : "0.98011 1.17403",
+								"size" : 0.60000002,
+								"speed" : -1.09
+							},
+							"id" : 570
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/shake/effect.json",
+					"id" : 99,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"bounds" : "0 1",
+								"friction" : "1 1",
+								"speed" : 1.04,
+								"strength" : 0.075999998
+							},
+							"id" : 100,
+							"textures" : [ null, "masks/shake_mask_013ec4d5" ]
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/twirl/effect.json",
+					"id" : 162,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"amount" : 0.25,
+								"angle" : 3.04,
+								"center" : "0.93424 0.31672",
+								"feather" : 0.0020000001,
+								"phase" : 0.0,
+								"ratio" : 0.31431997,
+								"size" : 0.012365767,
+								"speed" : 0.25
+							},
+							"id" : 163
+						}
+					],
+					"visible" : true
+				},
+				{
+					"file" : "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id" : 169,
+					"name" : "",
+					"passes" : 
+					[
+						{
+							"constantshadervalues" : 
+							{
+								"Distorsion 1" : 0.5,
+								"Distorsion 2" : 0.0,
+								"center" : "0.88288 0.55208",
+								"chromaticAberration" : 1.0,
+								"general" : 1.0,
+								"size" : 0.4151639,
+								"ui_editor_properties_opacity" : 1.0,
+								"zoom" : 1.0
+							},
+							"id" : 172
+						}
+					],
+					"visible" : 
+					{
+						"script" : "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value" : true
+					}
+				}
+			],
+			"id" : 451,
+			"image" : "models/Sem título-1_Prancheta 1.json",
+			"name" : "K",
+			"origin" : "2520.00000 1082.00000 0.00000",
+			"size" : "5040.00000 2160.00000"
+		}
+	],
+	"version" : 4
+}

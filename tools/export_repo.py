@@ -1,11 +1,21 @@
-"""Copy what the public GitHub repo holds into its local clone, replacing the managed folders.
+"""Copy what the GitHub repo holds into its local clone (run from the working folder).
 
-  wallpaper/   the live Wallpaper Engine project (what WE loads)
-  scripts/     pipeline scripts + shader sources        tools/   helpers (rigs, .tex I/O, previews)
-  docs/        the handoff notes                         README.md, .gitignore, .gitattributes
+The repo is a complete, self-contained copy of the project: clone it on any machine and the
+current pipeline runs from it (README, "Set up on a new machine"). It holds, at the same relative
+paths as the working folder so every script runs unchanged in both:
+
+  wallpaper/                                 the live Wallpaper Engine project
+  scripts/, tools/                           the pipeline, scene scripts, shader sources, helpers
+  docs/                                      the handoff notes
+  backups/2026-11-07_before_optimize/project the optimiser's source (pre-optimisation scene,
+                                             full textures, masks); arm_follow_field.py writes here
+  recovered_original/                        the art layers + original masks, lossless PNG
+  Choronzon_mandala_black.png, mandala_canvas.png   mandala sources (scripts/add_mandalas.py)
+  rig/**/*.png|json                          the motion maps as editable PNGs + reports
+  README.md, .gitignore, .gitattributes      from repo/
 
 Usage: python tools/export_repo.py [repo_dir]   (default E:/Dev/reptilian-ultrawide-wallpaper-engine)
-Then commit and push from repo_dir.
+Then commit and push from repo_dir. Not needed when you work in the clone itself.
 """
 import shutil
 import sys
@@ -13,14 +23,22 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE / "scripts"))
-from add_mandalas import PROJ  # noqa: E402
+from we_paths import PROJ  # noqa: E402
 
 REPO = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("E:/Dev/reptilian-ultrawide-wallpaper-engine")
-TREES = {"wallpaper": PROJ, "scripts": HERE / "scripts", "tools": HERE / "tools"}
+SKIP = (".pyc", ".dxs")         # .dxs: WE's compiled shader cache (shaders/blobsSM40), rebuilt per machine
+TREES = {"wallpaper": (PROJ, None),
+         "scripts": (HERE / "scripts", None),
+         "tools": (HERE / "tools", None),
+         "backups/2026-11-07_before_optimize/project": (HERE / "backups" / "2026-11-07_before_optimize" / "project", None),
+         "recovered_original": (HERE / "recovered_original", None),
+         "rig": (HERE / "rig", (".png", ".json"))}
 DOCS = ["HANDOFF_animation.md", "HANDOFF_mandalas.md"]
 ROOT_FILES = {"README.md": HERE / "repo" / "README.md",
               ".gitignore": HERE / "repo" / "gitignore",
-              ".gitattributes": HERE / "repo" / "gitattributes"}
+              ".gitattributes": HERE / "repo" / "gitattributes",
+              "Choronzon_mandala_black.png": HERE / "Choronzon_mandala_black.png",
+              "mandala_canvas.png": HERE / "mandala_canvas.png"}
 
 
 def sync(src_files, dst_root):
@@ -42,22 +60,23 @@ def sync(src_files, dst_root):
                     pass                     # held open; git ignores empty folders anyway
 
 
-def tree_files(src):
+def tree_files(src, only=None):
     return {p.relative_to(src).as_posix(): p for p in src.rglob("*")
-            if p.is_file() and "__pycache__" not in p.parts and p.suffix not in (".pyc", ".dxs")}
-    # .dxs: WE's compiled shader cache (shaders/blobsSM40), rebuilt on every machine
+            if p.is_file() and "__pycache__" not in p.parts and p.suffix.lower() not in SKIP
+            and (only is None or p.suffix.lower() in only)}
 
 
 def main():
+    if REPO.resolve() == HERE.resolve():
+        sys.exit("this is the clone itself: commit here directly, nothing to export")
     REPO.mkdir(parents=True, exist_ok=True)
-    for name, src in TREES.items():
-        sync(tree_files(src), REPO / name)
+    for name, (src, only) in TREES.items():
+        sync(tree_files(src, only), REPO / name)
     sync({d: HERE / d for d in DOCS}, REPO / "docs")
     for dst, src in ROOT_FILES.items():
         shutil.copy2(src, REPO / dst)
-    n = sum(1 for p in REPO.rglob("*") if p.is_file() and ".git" not in p.relative_to(REPO).parts)
-    mb = sum(p.stat().st_size for p in REPO.rglob("*") if p.is_file() and ".git" not in p.relative_to(REPO).parts) / 1e6
-    print(f"exported {n} files, {mb:.1f} MB to {REPO}")
+    files = [p for p in REPO.rglob("*") if p.is_file() and ".git" not in p.relative_to(REPO).parts]
+    print(f"exported {len(files)} files, {sum(p.stat().st_size for p in files) / 1e6:.1f} MB to {REPO}")
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ Usage: python tools/tail_follow_field.py [--target 0.25]
 import argparse
 import math
 import struct
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -24,7 +25,8 @@ from PIL import Image
 from scipy import ndimage as ndi
 
 HERE = Path(__file__).resolve().parent.parent
-PROJ = Path(r"D:\steam\steamapps\common\wallpaper_engine\projects\myprojects\reptilian_ultrawide_5120")
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+from we_paths import PROJ  # noqa: E402  (finds the WE project on any machine)
 TW, TH = 5040, 2160
 MW, MH = 1720, 720                       # same grid as the rig maps
 F = 4

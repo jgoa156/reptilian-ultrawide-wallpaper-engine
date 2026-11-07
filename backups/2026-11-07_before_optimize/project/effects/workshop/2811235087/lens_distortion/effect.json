@@ -1,0 +1,32 @@
+{
+	"dependencies" : 
+	[
+		"materials/workshop/2811235087/effects/lens_distortion.json",
+		"shaders/workshop/2811235087/effects/lens_distortion.frag",
+		"shaders/workshop/2811235087/effects/lens_distortion.vert"
+	],
+	"editable" : false,
+	"gizmos" : 
+	[
+		{
+			"type" : "EffectSpinUV",
+			"vars" : 
+			{
+				"angle" : "angle",
+				"center" : "center",
+				"ratio" : "ratio",
+				"size" : "size"
+			}
+		}
+	],
+	"group" : "localeffects",
+	"name" : "Lens distortion",
+	"passes" : 
+	[
+		{
+			"material" : "materials/workshop/2811235087/effects/lens_distortion.json"
+		}
+	],
+	"replacementkey" : "lens_distortion",
+	"version" : 1
+}

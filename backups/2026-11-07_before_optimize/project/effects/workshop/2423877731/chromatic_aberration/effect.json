@@ -1,0 +1,19 @@
+{
+	"dependencies" : 
+	[
+		"materials/workshop/2423877731/effects/chromatic_aberration.json",
+		"shaders/workshop/2423877731/effects/chromatic_aberration.frag",
+		"shaders/workshop/2423877731/effects/chromatic_aberration.vert"
+	],
+	"editable" : false,
+	"group" : "localeffects",
+	"name" : "Chromatic Aberration",
+	"passes" : 
+	[
+		{
+			"material" : "materials/workshop/2423877731/effects/chromatic_aberration.json"
+		}
+	],
+	"replacementkey" : "chromatic_aberration",
+	"version" : 1
+}

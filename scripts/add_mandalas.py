@@ -25,13 +25,15 @@ import copy
 import io
 import json
 import struct
+import sys
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
 
 HERE = Path(__file__).resolve().parent.parent
-PROJ = Path(r"D:\steam\steamapps\common\wallpaper_engine\projects\myprojects\reptilian_ultrawide_5120")
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+from we_paths import PROJ  # noqa: E402  (finds the WE project on any machine)
 CANVAS = (5120, 2160)    # authored scene size
 DIAMETER = 3000          # on-screen mandala size in canvas px (same as the BG kaleidoscope)
 CENTER = (2560, 1080)

@@ -18,7 +18,8 @@ from PIL import Image
 from scipy import ndimage as ndi
 
 HERE = Path(__file__).resolve().parent.parent
-PROJ = Path(r"D:\steam\steamapps\common\wallpaper_engine\projects\myprojects\reptilian_ultrawide_5120")
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+from we_paths import PROJ  # noqa: E402  (finds the WE project on any machine)
 TW, TH = 5040, 2160
 F = 4
 GW, GH = TW // F, TH // F

@@ -51,17 +51,42 @@ Details: [`docs/HANDOFF_animation.md`](docs/HANDOFF_animation.md) §13 and the h
 [`scripts/shader/creature_warp.frag.in`](scripts/shader/creature_warp.frag.in).
 
 ## Repository layout
-| Folder | Contents |
+The repo is a complete copy of the project: everything the current pipeline reads is here.
+
+| Path | Contents |
 |---|---|
 | `wallpaper/` | The Wallpaper Engine project: scene, textures, masks, effects, generated shaders |
-| `scripts/` | The pipeline that built the scene (`add_*.py`, `apply_rig4.py`, `optimize_creature.py`), the scene scripts (`*.js`) and the shader sources (`scripts/shader/`) |
-| `tools/` | Rig generators, `.tex` reader/writer (`tex_io.py`), preview and verification helpers |
-| `docs/` | Working notes: how the rig, the mandala and the optimization were built and verified |
+| `scripts/` | The pipeline (`optimize_creature.py` and the earlier `add_*.py` / `apply_rig4.py`), the scene scripts (`*.js`), the shader sources (`scripts/shader/`), `we_paths.py` (finds the WE project) |
+| `tools/` | Rig generators (`arm_follow_field.py`, …), `.tex` reader/writer (`tex_io.py`), preview and verification helpers |
+| `backups/2026-11-07_before_optimize/project/` | **The optimiser's source**: the scene before the performance pass, with full textures and every motion mask. Effect changes go here, then `optimize_creature.py` rebuilds `wallpaper/` |
+| `recovered_original/` | The art layers and the original masks as lossless PNG |
+| `rig/` | The motion maps as editable PNGs, plus reports and previews |
+| `Choronzon_mandala_black.png`, `mandala_canvas.png` | Mandala sources |
+| `docs/` | Working notes: how the rig, the mandala, the optimization and the arm follow were built and verified |
 
-The scripts are working tools, not a packaged build. They expect the author's local folders: the
-WE project path in `scripts/add_mandalas.py`, plus the source art and the pre-optimization project
-copy that `optimize_creature.py` reads, neither of which is in this repo. Python 3.13 with numpy,
-scipy, Pillow, OpenCV and (optionally) `lz4`.
+## Set up on a new machine
+1. Install Wallpaper Engine (Steam), Git and Python 3.13, then:
+   ```
+   git clone https://github.com/jgoa156/reptilian-ultrawide-wallpaper-engine.git
+   pip install numpy scipy pillow opencv-python lz4
+   ```
+   (`lz4` makes the scripts write byte-identical textures; without it they still work, with
+   slightly larger files.)
+2. Let Wallpaper Engine load the repo's `wallpaper/` folder directly, with a junction (run in
+   `cmd`, adjusting the Steam path):
+   ```
+   mklink /J "C:\Program Files (x86)\Steam\steamapps\common\wallpaper_engine\projects\myprojects\reptilian_ultrawide_5120" "<clone>\wallpaper"
+   ```
+   Then pick it in Wallpaper Engine. `python scripts/we_paths.py` prints the project folder the
+   scripts will write to: the junction, found in any Steam library. Without the junction they
+   write to `wallpaper/` itself. `REPTILIAN_WE_PROJECT` overrides both.
+3. Rebuild after a change (e.g. arm reach): `python tools/arm_follow_field.py --tip 180`, then
+   `python scripts/optimize_creature.py`. Re-select the wallpaper in WE to reload it, then commit.
+
+`optimize_creature.py` rebuilds `wallpaper/scene.json` from the source project, so a scene
+change made in the WE editor on `wallpaper/` (layers, effects, particles) lasts only until the
+next run. For lasting changes, edit the source project (it opens in the WE editor too), then run
+the optimiser. `project.json` (user properties, title, preview) is not rebuilt.
 
 ## Credits
 - **Artwork**: the Reptilian illustration by [death.yon](https://www.instagram.com/death.yon).

@@ -1,0 +1,17 @@
+{
+	"version": 1,
+	"replacementkey": "lens_fold_clip",
+	"name": "Lens fold clip",
+	"description": "Clips the folded far zone of the lens distortion (shadow artifact fix)",
+	"group": "localeffects",
+	"passes": [
+		{
+			"material": "materials/effects/lens_fold_clip.json"
+		}
+	],
+	"dependencies": [
+		"materials/effects/lens_fold_clip.json",
+		"shaders/effects/lens_fold_clip.frag",
+		"shaders/effects/lens_fold_clip.vert"
+	]
+}

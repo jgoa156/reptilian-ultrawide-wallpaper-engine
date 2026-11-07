@@ -11,10 +11,12 @@ import copy
 import glob
 import json
 import shutil
+import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent
-PROJ = Path(r"D:\steam\steamapps\common\wallpaper_engine\projects\myprojects\reptilian_ultrawide_5120")
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+from we_paths import PROJ  # noqa: E402  (finds the WE project on any machine)
 rep = json.loads((HERE / "reports" / "rig4_report.json").read_text())
 ART_LAYERS = ["W", "C", "M", "C2", "K"]
 

@@ -1,0 +1,17 @@
+{
+	"version": 1,
+	"replacementkey": "tail_follow",
+	"name": "Tail rig + mouse follow",
+	"description": "Rig: Tail sway plus a mouse-driven push along the same flow map",
+	"group": "localeffects",
+	"passes": [
+		{
+			"material": "materials/effects/tail_follow.json"
+		}
+	],
+	"dependencies": [
+		"materials/effects/tail_follow.json",
+		"shaders/effects/tail_follow.frag",
+		"shaders/effects/tail_follow.vert"
+	]
+}

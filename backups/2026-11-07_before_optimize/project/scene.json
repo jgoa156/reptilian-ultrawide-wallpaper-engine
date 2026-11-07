@@ -1,0 +1,3517 @@
+{
+	"camera": {
+		"center": "0.00000 0.00000 -1.00000",
+		"eye": "0.00000 0.00000 0.00000",
+		"up": "0.00000 1.00000 0.00000"
+	},
+	"general": {
+		"ambientcolor": "0.30000 0.30000 0.30000",
+		"bloom": false,
+		"bloomhdrfeather": 0.1,
+		"bloomhdriterations": 8,
+		"bloomhdrscatter": 1.619,
+		"bloomhdrstrength": 2.0,
+		"bloomhdrthreshold": 1.0,
+		"bloomstrength": 2.0,
+		"bloomthreshold": 0.64999998,
+		"bloomtint": "1.00000 1.00000 1.00000",
+		"camerafade": true,
+		"cameraparallax": false,
+		"cameraparallaxamount": 0.5,
+		"cameraparallaxdelay": 0.1,
+		"cameraparallaxmouseinfluence": 0.5,
+		"camerapreview": true,
+		"camerashake": false,
+		"camerashakeamplitude": 0.5,
+		"camerashakeroughness": 1.0,
+		"camerashakespeed": 3.0,
+		"clearcolor": "0.87059 0.87059 0.87059",
+		"clearenabled": true,
+		"farz": 10000.0,
+		"fov": 50.0,
+		"gravitydirection": "0.00000 -1.00000 0.00000",
+		"gravitystrength": 1.0,
+		"hdr": false,
+		"nearz": 0.0099999998,
+		"orthogonalprojection": {
+			"height": 2160,
+			"width": 5120
+		},
+		"perspectiveoverridefov": 30.0,
+		"skylightcolor": "0.30000 0.30000 0.30000",
+		"winddirection": "0.70700 0.70700 0.00000",
+		"windenabled": false,
+		"windstrength": 1.0,
+		"zoom": 1.0
+	},
+	"objects": [
+		{
+			"alpha": 0.1,
+			"castshadow": false,
+			"effects": [
+				{
+					"file": "effects/spin/effect.json",
+					"id": 379,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 0,
+								"center": "0.5 0.5",
+								"feather": 0.013,
+								"phase": 0,
+								"ratio": 1,
+								"size": 0.49925998,
+								"speed": 0.0099999998
+							},
+							"id": 380
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2423877731/chromatic_aberration/effect.json",
+					"id": 167,
+					"name": "",
+					"passes": [
+						{
+							"combos": {
+								"AUDIOPROCESSING": 3
+							},
+							"constantshadervalues": {
+								"Alpha": 1,
+								"Blue Channel Offset": -0.050000001,
+								"Green Channel Offset": -0.050000001,
+								"Red Channel Offset": -0.050000001,
+								"audioamount": 1.5,
+								"audiobounds": "0.5 1.0",
+								"audioexponent": 0.050000001,
+								"frequencymax": 2,
+								"frequencymin": 0.0
+							},
+							"id": 168
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 158,
+					"name": "Audio Off",
+					"passes": [
+						{
+							"combos": {
+								"PULSEALPHA": 1
+							},
+							"constantshadervalues": {
+								"amount": 2,
+								"bounds": "0 1",
+								"noiseamount": 0,
+								"noisespeed": 0.5,
+								"phase": 0,
+								"power": 2,
+								"speed": 0.5,
+								"tinthigh": "0.13333333333333333 0.13333333333333333 0.13333333333333333",
+								"tintlow": "0.26666666666666666 0.26666666666666666 0.26666666666666666"
+							},
+							"id": 159
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\nlet isMusicPlaying = false; // Assume no music is playing by default\n\n/**\n * Initializes the audio listener when the environment is ready.\n */\nexport function initializeAudioListener() {\n    if (typeof window !== 'undefined' && window.wallpaperRegisterAudioListener) {\n        // Register the audio listener to track if music is playing\n        window.wallpaperRegisterAudioListener(function(audioData) {\n            // Update isMusicPlaying based on audio volume\n            console.log(\"Window detected: Audio Off\");\n            isMusicPlaying = audioData.volume > 0; // true if volume is greater than 0\n        });\n    } else {\n        console.log(\"Window not detected: Audio Off\");\n    }\n}\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @param {Boolean} runWhenMusicPlaying - if true, the effect remains visible when music is playing; if false, it becomes invisible when music is playing\n * @return {Boolean} - update current property value based on whether music is playing\n */\nexport function update(value, runWhenMusicPlaying) {\n    // If music is playing, hide the effect unless runWhenMusicPlaying is true\n    if (isMusicPlaying) {\n        // Music is playing\n        return runWhenMusicPlaying ? value : false; // Show effect if allowed to run with music\n    }\n    // Music is not playing\n    return value; // Show effect when no music is playing\n}\n\nconst shouldRunWhenMusicPlaying = false; // Set to true to allow the effect to run while music is playing\nconst isVisible = update(true, shouldRunWhenMusicPlaying);\n\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 382,
+					"name": "Audio On",
+					"passes": [
+						{
+							"combos": {
+								"AUDIOPROCESSING": 3,
+								"BLENDMODE": 1,
+								"PULSEALPHA": 1
+							},
+							"constantshadervalues": {
+								"amount": 2,
+								"audioamount": 2,
+								"audiobounds": "0.5 1.0",
+								"audioexponent": 0.15000001,
+								"bounds": "0 1",
+								"frequencymax": 1,
+								"frequencymin": 0.0,
+								"noiseamount": 0,
+								"noisespeed": 0,
+								"phase": 0,
+								"power": 0.25,
+								"speed": 1,
+								"tinthigh": "0.9529411764705882 0.9529411764705882 0.9529411764705882",
+								"tintlow": "1 1 1"
+							},
+							"id": 383
+						}
+					],
+					"visible": {
+						"script": "/*'use strict';\n\nlet isMusicPlaying = false; // Assume no music is playing by default\n\n/**\n * Initializes the audio listener when the environment is ready.\n */\n/*export function initializeAudioListener() {\n    if (typeof window !== 'undefined' && window.wallpaperRegisterAudioListener) {\n        // Register the audio listener to track if music is playing\n        window.wallpaperRegisterAudioListener(function(audioData) {\n            // Update isMusicPlaying based on audio volume\n            console.log(\"Window detected: Audio On\");\n            isMusicPlaying = audioData.volume > 0; // true if volume is greater than 0\n        });\n    } else {\n        console.log(\"Window not detected: Audio Off\");\n    }\n}\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @param {Boolean} runWhenMusicPlaying - if true, the effect remains visible when music is playing; if false, it becomes invisible when music is playing\n * @return {Boolean} - update current property value based on whether music is playing\n */\n/*export function update(value, runWhenMusicPlaying) {\n    // If music is playing, hide the effect unless runWhenMusicPlaying is true\n    if (isMusicPlaying) {\n        // Music is playing\n        return runWhenMusicPlaying ? value : false; // Show effect if allowed to run with music\n    }\n    // Music is not playing\n    return value; // Show effect when no music is playing\n}\n\nconst shouldRunWhenMusicPlaying = true; // Set to true to allow the effect to run while music is playing\nconst isVisible = update(true, shouldRunWhenMusicPlaying);*/\n\n",
+						"value": false
+					}
+				}
+			],
+			"id": 377,
+			"image": "models/kaleidoscope10_15_24120703AM.json",
+			"name": "BG",
+			"origin": "2560.00000 1080.00000 0.00000",
+			"scale": "2.00000 2.00000 1.00000",
+			"size": "1500.00000 1500.00000"
+		},
+		{
+			"alpha": {
+				"script": "'use strict';\n\n// Mandala controller, bound to MandalaK's alpha (installed by scripts/add_mandalas.py).\n//\n// The 13 pieces, their spin, their side fades and their bulge live in the \"Spectrum mandala\"\n// shader effect. This script feeds it the 13 piece levels (arm0..arm12, bass) every frame and\n// drives what needs memory over time:\n//\n//  * Silence: every piece breathes together (the old pulse, period `period`).\n//    Music: the breathing hands over to the sound. The floor drops to `musicFloor`, so each\n//    piece reads by its own band. The hand-over follows a smoothed \"is music playing\" level.\n//  * Datamosh (Customizable Module Visualizer): while the bass is above `moshLevel` of its\n//    recent peak, a fresh corrupted frame is rolled on each ~33 ms tick with probability\n//    0.5 * moshChance. Louder bass means more errors and higher opacity. Otherwise the\n//    corruption dies out within a few ticks.\n//  * Leonard glitch (Master Leonard, src/leonard.c), black layer only: on every beat (an onset of\n//    the whole song) 3..7 horizontal slices shear sideways for 90..300 ms. Harder hits tear more\n//    slices and shove them further. It only moves pixels, so it keeps the pieces' darkness: in\n//    a song, only the pieces whose band is sounding get blacker.\n//\n// Opacity: the shader's min/max opacity, bound straight to the user properties\n// `mandalaminopacity` / `mandalamaxopacity` (blur: `mandalablur`). This script no longer touches\n// them. The layer alpha it returns (1) does nothing visible: the effect replaces the layer image.\n//\n// Idle = the full mandala (`slice` 0); music = 13 pieces (`slice` follows the music presence).\n\nexport var scriptProperties = createScriptProperties()\n\t.addSlider({ name: 'period', label: 'Silent pulse period (s)', value: 7, min: 0.5, max: 30, integer: false })\n\t.addSlider({ name: 'depth', label: 'Silent pulse depth', value: 0.6, min: 0, max: 1, integer: false })\n\t.addSlider({ name: 'musicFloor', label: 'Piece level under music', value: 0.15, min: 0, max: 1, integer: false })\n\t.addSlider({ name: 'moshChance', label: 'Datamosh strength', value: 1, min: 0, max: 2, integer: false })\n\t.addSlider({ name: 'moshLevel', label: 'Datamosh bass level', value: 0.7, min: 0, max: 1, integer: false })\n\t.addSlider({ name: 'glitch', label: 'Glitch strength', value: 1, min: 0, max: 2, integer: false })\n\t.finish();\n\nconst audio = engine.registerAudioBuffers(engine.AUDIO_RESOLUTION_16);\nconst EFFECT = 'Spectrum mandala';\n\n// 13 pieces, clockwise from the top: the top piece takes the lowest bands of both channels,\n// the right half the right channel and the left half the left channel, both rising in pitch\n// toward the bottom (7 band groups over WE's 16 bands). Higher bands carry less energy, so their\n// bounds are lower (bass pieces 0.2..1.1, treble pieces 0.04..0.45).\nconst GROUPS = [[0, 2], [2, 4], [4, 6], [6, 9], [9, 11], [11, 13], [13, 15]];\nconst ARMS = [[0, 'both']];\nfor (let g = 1; g <= 6; g++) ARMS[g] = [g, 'right'];\nfor (let g = 6; g >= 1; g--) ARMS[13 - g] = [g, 'left'];\nconst BOUNDS_LOW = [0.2, 1.1], BOUNDS_HIGH = [0.04, 0.45];\nconst armLv = new Array(13).fill(0);\nlet bassLv = 0;\n\nfunction smooth01(a, b, x) { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }\nfunction groupLevel(buf, g) {\n\tlet v = 0;\n\tfor (let i = GROUPS[g][0]; i <= GROUPS[g][1]; i++) v += buf[i];\n\treturn v / (GROUPS[g][1] - GROUPS[g][0] + 1);\n}\n\nlet fx = null, tried = 0;\nlet presence = 0, fast = 0, slow = 0, favg = 0.02, hold = 0.05;\nlet tickAcc = 0, mosh = 0, moshSeed = 0, moshErrors = 0;\nlet efast = 0, eslow = 0, eavg = 0.02, epulse = 0, glitchUntil = 0, glitchCool = 0, glitchOn = false;\nlet glitchLv = 0, glitchSlices = 0;\nconst GLITCH_SCALE = 0.1;           // user: \"WAY WAY more subtle\" -> a tenth of Leonard's shove\nconst MOSH_MAX = 0.3;               // datamosh opacity cap (was 1)\n\nfunction clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }\n\nfunction set(name, v) {\n\ttry { fx.setMaterialProperty(name, v); } catch (e) { /* older WE: leave the shader defaults */ }\n}\n\nexport function update(value) {\n\tconst p = scriptProperties;\n\tconst dt = engine.frametime;\n\tif (!(dt > 0)) {\n\t\treturn 1;\n\t}\n\tif (!fx && engine.runtime > tried) {                  // retry once a second until the layer exists\n\t\ttried = engine.runtime + 1;\n\t\tconst layer = thisScene.getLayer('MandalaK');\n\t\ttry { fx = layer ? layer.getEffect(EFFECT) : null; } catch (e) { fx = null; }\n\t}\n\tif (!fx) {\n\t\treturn 1;\n\t}\n\tconst k30 = Math.min(dt * 30, 4);                     // ~30 fps ticks this frame\n\tconst rate = (a) => 1 - Math.pow(1 - a, k30);\n\n\t// ---- levels\n\tlet all = 0, bass = 0;\n\tfor (let i = 0; i < 16; i++) all += audio.average[i];\n\tall /= 16;\n\tfor (let i = 0; i < 4; i++) bass += audio.average[i];\n\tbass /= 4;\n\n\t// ---- Leonard glitch: onsets of the whole song (leonard.c audio_poll), black layer only\n\tlet l = 0, r = 0;\n\tfor (let i = 0; i < 16; i++) { l += audio.left[i]; r += audio.right[i]; }\n\tconst e = Math.max(l, r) / 16;\n\tefast += (e - efast) * rate(0.55);\n\teslow += (e - eslow) * rate(0.06);\n\tconst eflux = Math.max(0, efast - eslow);\n\tconst en = eflux / (eavg * 1.5 + 0.004);\n\teavg += (eflux - eavg) * rate(0.02);\n\tepulse = Math.max(epulse * Math.pow(0.8, k30), clamp(en, 0, 1.5));\n\tconst ms = engine.runtime * 1000;\n\tif (p.glitch > 0 && en > 0.3 && e > 0.01 && ms >= glitchCool) {\n\t\tconst lv = Math.min(1, Math.max(e * 0.6 / 0.3, Math.min(epulse, 1)));   // how hard the hit was\n\t\tconst slices = 3 + Math.floor(Math.random() * (1 + Math.round(lv * 4)));  // 3..7\n\t\t// Leonard shoves a slice by up to 30 px * (1 + 2.5 lv) on an 800 px panel the mandala's\n\t\t// diameter wide: 2 radii = 800 px\n\t\tglitchLv = lv;\n\t\tglitchSlices = slices;\n\t\tset('glitchslices', slices);\n\t\tglitchUntil = ms + 90 + Math.random() * 90 + lv * 120;\n\t\tglitchCool = ms + 60;\n\t\tglitchOn = true;\n\t}\n\tif (glitchOn && ms < glitchUntil) {\n\t\t// re-roll every frame while active: fast flicker, not one held jump\n\t\tset('glitchseed', Math.floor(Math.random() * 1000));\n\t\tset('glitchshift', 30 * (1 + 2.5 * glitchLv) / 400 * GLITCH_SCALE * p.glitch * (0.5 + Math.random() * 0.5));\n\t} else if (glitchOn) {\n\t\tset('glitchslices', 0);\n\t\tglitchOn = false;\n\t}\n\n\t// ---- piece levels (the shader can't read audio itself in WE's translator)\n\tfor (let k = 0; k < 13; k++) {\n\t\tconst g = ARMS[k][0], side = ARMS[k][1];\n\t\tconst raw = side === 'both' ? (groupLevel(audio.left, g) + groupLevel(audio.right, g)) * 0.5\n\t\t\t: groupLevel(side === 'left' ? audio.left : audio.right, g);\n\t\tconst t = g / 6;\n\t\tconst v = smooth01(BOUNDS_LOW[0] + (BOUNDS_HIGH[0] - BOUNDS_LOW[0]) * t,\n\t\t\tBOUNDS_LOW[1] + (BOUNDS_HIGH[1] - BOUNDS_LOW[1]) * t, raw);\n\t\tarmLv[k] += (v - armLv[k]) * (v > armLv[k] ? rate(0.6) : rate(0.15));   // snap up, ease down\n\t\tset('arm' + k, armLv[k]);\n\t}\n\tconst bv = smooth01(BOUNDS_LOW[0], BOUNDS_LOW[1], (audio.left[0] + audio.left[1] + audio.right[0] + audio.right[1]) * 0.25);\n\tbassLv += (bv - bassLv) * (bv > bassLv ? rate(0.6) : rate(0.15));\n\tset('bass', bassLv);\n\n\t// ---- silence <-> music hand-over\n\tconst playing = all > 0.015 ? 1 : 0;\n\tpresence += (playing - presence) * (playing > presence ? rate(0.08) : rate(0.02));\n\tconst wave = 0.5 - 0.5 * Math.cos(2 * Math.PI * engine.runtime / p.period);\n\tconst breath = 1 - p.depth + p.depth * wave;\n\tset('floor', breath + (p.musicFloor - breath) * presence);\n\tset('slice', presence);                              // idle: full mandala; music: 13 pieces\n\n\t// ---- bass onsets (fast envelope over slow one, normalised by how much the song usually moves)\n\tfast += (bass - fast) * rate(0.55);\n\tslow += (bass - slow) * rate(0.06);\n\tconst flux = Math.max(0, fast - slow);\n\tconst n = flux / (favg * 1.5 + 0.004);\n\tfavg += (flux - favg) * rate(0.02);\n\thold = Math.max(bass, hold * Math.pow(0.996, k30));\n\tif (hold < 0.05) hold = 0.05;\n\tconst rel = clamp(bass / hold, 0, 1);                 // bass against its recent peak\n\n\t// ---- datamosh: re-rolled every frame (up to 60/s), like the visualizer's per-frame check\n\ttickAcc += dt;\n\tif (tickAcc >= 1 / 60) {\n\t\ttickAcc = 0;\n\t\tif (rel > p.moshLevel && bass > 0.05 && Math.random() < 0.5 * p.moshChance) {\n\t\t\tmoshSeed = Math.floor(Math.random() * 1000);\n\t\t\tmoshErrors = 1 + Math.floor(Math.random() * rel * 5.99);\n\t\t\tmosh = clamp((rel - p.moshLevel) / Math.max(1 - p.moshLevel, 0.05) * 0.8 + 0.2, 0, 1)\n\t\t\t\t* Math.min(p.moshChance, 1) * MOSH_MAX;\n\t\t} else {\n\t\t\tmosh *= 0.5;\n\t\t\tif (mosh < 0.01) mosh = 0;\n\t\t}\n\t}\n\tset('mosh', mosh);\n\tif (mosh > 0) {\n\t\tset('moshseed', moshSeed);\n\t\tset('mosherrors', moshErrors);\n\t}\n\n\treturn 1;\n}\n",
+				"scriptproperties": {
+					"period": 7,
+					"depth": 0.6,
+					"musicFloor": 0.15,
+					"moshChance": 1,
+					"moshLevel": 0.7,
+					"glitch": 1
+				},
+				"value": 1.0
+			},
+			"castshadow": false,
+			"effects": [
+				{
+					"file": "effects/mandala_spectrum/effect.json",
+					"id": 1272,
+					"name": "Spectrum mandala",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"unitscale": "3.41333 1.44000",
+								"turnperiod": {
+									"user": "spinperiod",
+									"value": 39.0
+								},
+								"feather": 0.35,
+								"floor": 0.6,
+								"bulge": 0.1,
+								"bassscale": 0.04,
+								"arm0": 0,
+								"arm1": 0,
+								"arm2": 0,
+								"arm3": 0,
+								"arm4": 0,
+								"arm5": 0,
+								"arm6": 0,
+								"arm7": 0,
+								"arm8": 0,
+								"arm9": 0,
+								"arm10": 0,
+								"arm11": 0,
+								"arm12": 0,
+								"bass": 0,
+								"mosh": 0,
+								"moshseed": 0,
+								"mosherrors": 3,
+								"moshgrid": "160 68",
+								"glitchslices": 0,
+								"glitchseed": 0,
+								"glitchshift": 0.1,
+								"slice": 0,
+								"minopacity": {
+									"user": "mandalaminopacity",
+									"value": 0.0
+								},
+								"maxopacity": {
+									"user": "mandalamaxopacity",
+									"value": 15.0
+								},
+								"blur": {
+									"user": "mandalablur",
+									"value": 0.0
+								}
+							},
+							"id": 1273,
+							"textures": [
+								null,
+								null,
+								"Choronzon_mandala_black"
+							]
+						}
+					],
+					"visible": true
+				}
+			],
+			"id": 1274,
+			"image": "models/mandala_canvas.json",
+			"name": "MandalaK",
+			"origin": "2560.00000 1080.00000 0.00000",
+			"scale": "1.00000 1.00000 1.00000",
+			"size": "5120.00000 2160.00000"
+		},
+		{
+			"castshadow": false,
+			"id": 1185,
+			"image": "models/Shadow.json",
+			"name": "Shadow",
+			"origin": "2600.00000 1082.00000 0.00000",
+			"size": "5040.00000 2160.00000",
+			"alpha": 1.0,
+			"effects": [
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1173,
+					"name": "Rig: Hair & Tendrils",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.3,
+								"strength": 0.098
+							},
+							"id": 1174,
+							"textures": [
+								null,
+								"masks/rig3_appendages_flow",
+								"masks/rig3_appendages_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/tail_follow/effect.json",
+					"id": 1175,
+					"name": "Rig: Tail",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"speed": 1.04,
+								"strength": 0.074,
+								"followstrength": 0.175,
+								"follow": {
+									"script": "'use strict';\n\n// Tail follows the mouse (horizontal axis). Bound to the \"follow\" value of the \"Rig: Tail\"\n// effect on every creature layer (installed by scripts/add_tail_follow.py). Every copy runs the\n// same math on the same input, so all layers stay in register.\n//\n// The target is the cursor's horizontal distance from the tail itself (read from layer K's live\n// position, so it follows the layout script and WE's flip): REACH of the canvas width either side\n// gives full deflection. An under-damped spring makes it snappy with a small overshoot; the output\n// is clamped to -1..1, which keeps the shader's strain guarantee.\n// User property `tailfollow` (0..100 %) scales it; 0 turns it off.\n\nconst TAIL_TX = 3680;      // tail tip, texture px (texture is 5040 wide)\nconst REACH = 0.3;         // fraction of the canvas width for full deflection\nconst OMEGA = 14;          // spring stiffness (rad/s)\nconst ZETA = 0.55;         // damping ratio (< 1: slight overshoot)\n\nlet amount = 1;\nlet pos = 0, vel = 0;\nlet kLayer = null, tried = -1;\n\nfunction clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }\n\nexport function applyUserProperties(changed) {\n\tif (changed.hasOwnProperty('tailfollow')) {\n\t\tamount = clamp(Number(changed.tailfollow) / 100, 0, 1);\n\t}\n}\n\nfunction tailWorldX(w) {\n\tif (!kLayer && engine.runtime > tried) {\n\t\ttried = engine.runtime + 1;\n\t\ttry { kLayer = thisScene.getLayer('K'); } catch (e) { kLayer = null; }\n\t}\n\tif (kLayer) {\n\t\treturn kLayer.origin.x + (TAIL_TX - 2520) * kLayer.scale.x;\n\t}\n\treturn w * 0.72;\n}\n\nexport function update(value) {\n\tconst w = engine.canvasSize.x;\n\tif (!(w > 0)) {\n\t\treturn value;\n\t}\n\tconst target = clamp((input.cursorWorldPosition.x - tailWorldX(w)) / (REACH * w), -1, 1) * amount;\n\tlet dt = Math.min(engine.frametime, 0.05);\n\twhile (dt > 0) {                                   // sub-step for a stable spring\n\t\tconst h = Math.min(dt, 1 / 120);\n\t\tconst acc = OMEGA * OMEGA * (target - pos) - 2 * ZETA * OMEGA * vel;\n\t\tvel += acc * h;\n\t\tpos += vel * h;\n\t\tdt -= h;\n\t}\n\treturn clamp(pos, -1, 1);\n}\n",
+									"value": 0.0
+								}
+							},
+							"id": 1176,
+							"textures": [
+								null,
+								"masks/rig2_tail_flow",
+								"masks/rig2_tail_time",
+								"masks/arm_follow_flow16"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1177,
+					"name": "Rig: Head & Body",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.9,
+								"strength": 0.082
+							},
+							"id": 1178,
+							"textures": [
+								null,
+								"masks/rig4_body_flow",
+								"masks/rig4_body_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1248,
+					"name": "Rig: Belly",
+					"passes": [
+						{
+							"id": 1249,
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.75,
+								"strength": 0.067
+							},
+							"textures": [
+								null,
+								"masks/rig5_belly_flow",
+								"masks/rig5_belly_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1179,
+					"name": "Rig: Face",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.6,
+								"strength": 0.051
+							},
+							"id": 1180,
+							"textures": [
+								null,
+								"masks/rig4_face_flow",
+								"masks/rig4_face_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id": 1181,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"Distorsion 1": 0.5,
+								"Distorsion 2": 0,
+								"center": "0.88288 0.55208",
+								"chromaticAberration": 1,
+								"general": 1,
+								"size": 0.4151639,
+								"ui_editor_properties_opacity": 1,
+								"zoom": 1
+							},
+							"id": 1182
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/lens_fold_clip/effect.json",
+					"id": 1183,
+					"name": "Lens fold clip",
+					"passes": [
+						{
+							"id": 1184,
+							"constantshadervalues": {
+								"center": "0.88288 0.55208",
+								"scale": "0.71171 1.66066",
+								"fold": "0.55 0.62"
+							}
+						}
+					],
+					"visible": true
+				}
+			]
+		},
+		{
+			"castshadow": false,
+			"effects": [
+				{
+					"file": "effects/shake/effect.json",
+					"id": 910,
+					"name": "Rig: Hair & Tendrils",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.3,
+								"strength": 0.098
+							},
+							"id": 911,
+							"textures": [
+								null,
+								"masks/rig3_appendages_flow",
+								"masks/rig3_appendages_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/tail_follow/effect.json",
+					"id": 912,
+					"name": "Rig: Tail",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"speed": 1.04,
+								"strength": 0.074,
+								"followstrength": 0.175,
+								"follow": {
+									"script": "'use strict';\n\n// Tail follows the mouse (horizontal axis). Bound to the \"follow\" value of the \"Rig: Tail\"\n// effect on every creature layer (installed by scripts/add_tail_follow.py). Every copy runs the\n// same math on the same input, so all layers stay in register.\n//\n// The target is the cursor's horizontal distance from the tail itself (read from layer K's live\n// position, so it follows the layout script and WE's flip): REACH of the canvas width either side\n// gives full deflection. An under-damped spring makes it snappy with a small overshoot; the output\n// is clamped to -1..1, which keeps the shader's strain guarantee.\n// User property `tailfollow` (0..100 %) scales it; 0 turns it off.\n\nconst TAIL_TX = 3680;      // tail tip, texture px (texture is 5040 wide)\nconst REACH = 0.3;         // fraction of the canvas width for full deflection\nconst OMEGA = 14;          // spring stiffness (rad/s)\nconst ZETA = 0.55;         // damping ratio (< 1: slight overshoot)\n\nlet amount = 1;\nlet pos = 0, vel = 0;\nlet kLayer = null, tried = -1;\n\nfunction clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }\n\nexport function applyUserProperties(changed) {\n\tif (changed.hasOwnProperty('tailfollow')) {\n\t\tamount = clamp(Number(changed.tailfollow) / 100, 0, 1);\n\t}\n}\n\nfunction tailWorldX(w) {\n\tif (!kLayer && engine.runtime > tried) {\n\t\ttried = engine.runtime + 1;\n\t\ttry { kLayer = thisScene.getLayer('K'); } catch (e) { kLayer = null; }\n\t}\n\tif (kLayer) {\n\t\treturn kLayer.origin.x + (TAIL_TX - 2520) * kLayer.scale.x;\n\t}\n\treturn w * 0.72;\n}\n\nexport function update(value) {\n\tconst w = engine.canvasSize.x;\n\tif (!(w > 0)) {\n\t\treturn value;\n\t}\n\tconst target = clamp((input.cursorWorldPosition.x - tailWorldX(w)) / (REACH * w), -1, 1) * amount;\n\tlet dt = Math.min(engine.frametime, 0.05);\n\twhile (dt > 0) {                                   // sub-step for a stable spring\n\t\tconst h = Math.min(dt, 1 / 120);\n\t\tconst acc = OMEGA * OMEGA * (target - pos) - 2 * ZETA * OMEGA * vel;\n\t\tvel += acc * h;\n\t\tpos += vel * h;\n\t\tdt -= h;\n\t}\n\treturn clamp(pos, -1, 1);\n}\n",
+									"value": 0.0
+								}
+							},
+							"id": 913,
+							"textures": [
+								null,
+								"masks/rig2_tail_flow",
+								"masks/rig2_tail_time",
+								"masks/arm_follow_flow16"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 914,
+					"name": "Rig: Head & Body",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.9,
+								"strength": 0.082
+							},
+							"id": 915,
+							"textures": [
+								null,
+								"masks/rig4_body_flow",
+								"masks/rig4_body_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1250,
+					"name": "Rig: Belly",
+					"passes": [
+						{
+							"id": 1251,
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.75,
+								"strength": 0.067
+							},
+							"textures": [
+								null,
+								"masks/rig5_belly_flow",
+								"masks/rig5_belly_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 975,
+					"name": "Rig: Face",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.6,
+								"strength": 0.051
+							},
+							"id": 976,
+							"textures": [
+								null,
+								"masks/rig4_face_flow",
+								"masks/rig4_face_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id": 140,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"Distorsion 1": 0.5,
+								"Distorsion 2": 0,
+								"center": "0.88288 0.55208",
+								"chromaticAberration": 1,
+								"general": 1,
+								"size": 0.4151639,
+								"ui_editor_properties_opacity": 1,
+								"zoom": 1
+							},
+							"id": 143
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/lens_fold_clip/effect.json",
+					"id": 1226,
+					"name": "Lens fold clip",
+					"passes": [
+						{
+							"id": 1227,
+							"constantshadervalues": {
+								"center": "0.88288 0.55208",
+								"scale": "0.71171 1.66066",
+								"fold": "0.55 0.62"
+							}
+						}
+					],
+					"visible": true
+				}
+			],
+			"id": 92,
+			"image": "models/sprite bgpng_Prancheta 1.json",
+			"name": "W",
+			"origin": "2600.00000 1082.00000 0.00000",
+			"size": "5040.00000 2160.00000"
+		},
+		{
+			"alpha": 0.36000001,
+			"castshadow": false,
+			"effects": [
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 655,
+					"name": "(C) Música",
+					"passes": [
+						{
+							"combos": {
+								"AUDIOPROCESSING": 1,
+								"PULSEALPHA": 1,
+								"BLENDMODE": 0
+							},
+							"constantshadervalues": {
+								"audioamount": 2,
+								"audiobounds": "0.3 1.5",
+								"audioexponent": 0.15000001,
+								"frequencymax": 10,
+								"frequencymin": 0.0,
+								"tinthigh": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								},
+								"tintlow": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								}
+							},
+							"id": 656
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 800,
+					"name": "Olhar #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 0.82068151,
+								"center": "0.83175 0.42204",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 0.7697919,
+								"size": 0.01338407,
+								"speed": 0.51999998
+							},
+							"id": 801
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 802,
+					"name": "Olho #2",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 1.1971339,
+								"center": "0.84614 0.30772",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 1.0205573,
+								"size": 0.016285263,
+								"speed": 0.5
+							},
+							"id": 803
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/iris/effect.json",
+					"id": 804,
+					"name": "Olho menor #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"noiseamount": 0.5,
+								"phase": 0,
+								"rough": 0.2,
+								"scale": "1 1",
+								"speed": 1
+							},
+							"id": 805,
+							"textures": [
+								null,
+								"masks/fix_iris_mask_13f08b0d"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 806,
+					"name": "Guelras",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 0.83999997,
+								"power": 2,
+								"ratio": 2.77,
+								"scale": 0.1,
+								"scrolldirection": 0,
+								"speeduv": 2.2,
+								"strength": 0.171
+							},
+							"id": 807,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_f6655407",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/iris/effect.json",
+					"id": 808,
+					"name": "Little Eyes",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"noiseamount": 0.0099999998,
+								"phase": 0.07,
+								"rough": 0.2,
+								"scale": "0.38 0.38",
+								"speed": 0.50999999
+							},
+							"id": 809,
+							"textures": [
+								null,
+								"masks/fix_iris_mask_71a51a31"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/twirl/effect.json",
+					"id": 810,
+					"name": "Nose twirl",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"amount": 1,
+								"angle": 0,
+								"center": "0.81326 0.36239",
+								"feather": 0.01117,
+								"phase": 0,
+								"ratio": 1,
+								"size": 0.012416435,
+								"speed": -1.15
+							},
+							"id": 811
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/waterwaves/effect.json",
+					"id": 812,
+					"name": "Tail edge shimmer",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"direction": 2.2614093,
+								"exponent": 1,
+								"scale": 200,
+								"speed": 5,
+								"strength": 0.02
+							},
+							"id": 813,
+							"textures": [
+								null,
+								"masks/fix_waterwaves_mask_c13e3058"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 814,
+					"name": "Balance (General)",
+					"passes": [
+						{
+							"combos": {
+								"DIRECTION": 1
+							},
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 3.1800001,
+								"strength": 0.036
+							},
+							"id": 815,
+							"textures": [
+								null,
+								"masks/fix_shake_mask_647b9b30"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 816,
+					"name": "Mini Eye #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 0,
+								"center": "0.96217 0.14812",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 1,
+								"size": 0.0058834902,
+								"speed": 1
+							},
+							"id": 817
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 818,
+					"name": "Mini Eye #2",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": -0.5014165,
+								"center": "0.91460 0.25599",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 0.92496943,
+								"size": 0.0069296947,
+								"speed": 1
+							},
+							"id": 819
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 820,
+					"name": "Strings Hair",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 0.5,
+								"power": 1.37,
+								"ratio": 2.25,
+								"scale": 0.22,
+								"scrolldirection": 2.8540409,
+								"speeduv": 5,
+								"strength": 0.153
+							},
+							"id": 821,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_135029a1",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 822,
+					"name": "Strings Back",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 1.55,
+								"power": 1,
+								"ratio": 0.30000001,
+								"scale": 0.050000001,
+								"scrolldirection": 1.6494381,
+								"speeduv": 4.8000002,
+								"strength": 0.278
+							},
+							"id": 823,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_d3944eb2",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/twirl/effect.json",
+					"id": 824,
+					"name": "Honeycomb",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"amount": 0.25,
+								"angle": 3.04,
+								"center": "0.93424 0.31672",
+								"feather": 0.01113,
+								"phase": 0.0,
+								"ratio": 0.31431997,
+								"size": 0.012365767,
+								"speed": 0.25
+							},
+							"id": 825
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 916,
+					"name": "Rig: Hair & Tendrils",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.3,
+								"strength": 0.098
+							},
+							"id": 917,
+							"textures": [
+								null,
+								"masks/rig3_appendages_flow",
+								"masks/rig3_appendages_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/tail_follow/effect.json",
+					"id": 918,
+					"name": "Rig: Tail",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"speed": 1.04,
+								"strength": 0.074,
+								"followstrength": 0.175,
+								"follow": {
+									"script": "'use strict';\n\n// Tail follows the mouse (horizontal axis). Bound to the \"follow\" value of the \"Rig: Tail\"\n// effect on every creature layer (installed by scripts/add_tail_follow.py). Every copy runs the\n// same math on the same input, so all layers stay in register.\n//\n// The target is the cursor's horizontal distance from the tail itself (read from layer K's live\n// position, so it follows the layout script and WE's flip): REACH of the canvas width either side\n// gives full deflection. An under-damped spring makes it snappy with a small overshoot; the output\n// is clamped to -1..1, which keeps the shader's strain guarantee.\n// User property `tailfollow` (0..100 %) scales it; 0 turns it off.\n\nconst TAIL_TX = 3680;      // tail tip, texture px (texture is 5040 wide)\nconst REACH = 0.3;         // fraction of the canvas width for full deflection\nconst OMEGA = 14;          // spring stiffness (rad/s)\nconst ZETA = 0.55;         // damping ratio (< 1: slight overshoot)\n\nlet amount = 1;\nlet pos = 0, vel = 0;\nlet kLayer = null, tried = -1;\n\nfunction clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }\n\nexport function applyUserProperties(changed) {\n\tif (changed.hasOwnProperty('tailfollow')) {\n\t\tamount = clamp(Number(changed.tailfollow) / 100, 0, 1);\n\t}\n}\n\nfunction tailWorldX(w) {\n\tif (!kLayer && engine.runtime > tried) {\n\t\ttried = engine.runtime + 1;\n\t\ttry { kLayer = thisScene.getLayer('K'); } catch (e) { kLayer = null; }\n\t}\n\tif (kLayer) {\n\t\treturn kLayer.origin.x + (TAIL_TX - 2520) * kLayer.scale.x;\n\t}\n\treturn w * 0.72;\n}\n\nexport function update(value) {\n\tconst w = engine.canvasSize.x;\n\tif (!(w > 0)) {\n\t\treturn value;\n\t}\n\tconst target = clamp((input.cursorWorldPosition.x - tailWorldX(w)) / (REACH * w), -1, 1) * amount;\n\tlet dt = Math.min(engine.frametime, 0.05);\n\twhile (dt > 0) {                                   // sub-step for a stable spring\n\t\tconst h = Math.min(dt, 1 / 120);\n\t\tconst acc = OMEGA * OMEGA * (target - pos) - 2 * ZETA * OMEGA * vel;\n\t\tvel += acc * h;\n\t\tpos += vel * h;\n\t\tdt -= h;\n\t}\n\treturn clamp(pos, -1, 1);\n}\n",
+									"value": 0.0
+								}
+							},
+							"id": 919,
+							"textures": [
+								null,
+								"masks/rig2_tail_flow",
+								"masks/rig2_tail_time",
+								"masks/arm_follow_flow16"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 920,
+					"name": "Rig: Head & Body",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.9,
+								"strength": 0.082
+							},
+							"id": 921,
+							"textures": [
+								null,
+								"masks/rig4_body_flow",
+								"masks/rig4_body_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1252,
+					"name": "Rig: Belly",
+					"passes": [
+						{
+							"id": 1253,
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.75,
+								"strength": 0.067
+							},
+							"textures": [
+								null,
+								"masks/rig5_belly_flow",
+								"masks/rig5_belly_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 977,
+					"name": "Rig: Face",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.6,
+								"strength": 0.051
+							},
+							"id": 978,
+							"textures": [
+								null,
+								"masks/rig4_face_flow",
+								"masks/rig4_face_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id": 132,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"Distorsion 1": 0.5,
+								"Distorsion 2": 0,
+								"center": "0.88288 0.55208",
+								"chromaticAberration": 1,
+								"general": 1,
+								"size": 0.4151639,
+								"ui_editor_properties_opacity": 1,
+								"zoom": 1
+							},
+							"id": 133
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/lens_fold_clip/effect.json",
+					"id": 1228,
+					"name": "Lens fold clip",
+					"passes": [
+						{
+							"id": 1229,
+							"constantshadervalues": {
+								"center": "0.88288 0.55208",
+								"scale": "0.71171 1.66066",
+								"fold": "0.55 0.62"
+							}
+						}
+					],
+					"visible": true
+				}
+			],
+			"id": 78,
+			"image": "models/C.json",
+			"name": "C",
+			"origin": "2600.00000 1082.00000 0.00000",
+			"scale": "1.00300 1.00300 1.00000",
+			"size": "5040.00000 2160.00000"
+		},
+		{
+			"alpha": 0.66000003,
+			"castshadow": false,
+			"effects": [
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 669,
+					"name": "(M) Música",
+					"passes": [
+						{
+							"combos": {
+								"AUDIOPROCESSING": 1,
+								"PULSEALPHA": 1,
+								"BLENDMODE": 0
+							},
+							"constantshadervalues": {
+								"audioamount": 2,
+								"audiobounds": "0 1.5",
+								"audioexponent": 0.34999999,
+								"frequencymax": 8,
+								"frequencymin": 0,
+								"tinthigh": {
+									"user": "magentacolor",
+									"value": "1.00000 0.07059 0.30980"
+								},
+								"tintlow": {
+									"user": "magentacolor",
+									"value": "1.00000 0.07059 0.30980"
+								}
+							},
+							"id": 670
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/motionblur/effect.json",
+					"id": 790,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"rate": 1
+							},
+							"id": 791
+						},
+						{
+							"id": 38
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 834,
+					"name": "Olhar #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 0.82068151,
+								"center": "0.83175 0.42204",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 0.7697919,
+								"size": 0.01338407,
+								"speed": 0.51999998
+							},
+							"id": 835
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 836,
+					"name": "Olho #2",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 1.1971339,
+								"center": "0.84614 0.30772",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 1.0205573,
+								"size": 0.016285263,
+								"speed": 0.5
+							},
+							"id": 837
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/iris/effect.json",
+					"id": 838,
+					"name": "Olho menor #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"noiseamount": 0.5,
+								"phase": 0,
+								"rough": 0.2,
+								"scale": "1 1",
+								"speed": 1
+							},
+							"id": 839,
+							"textures": [
+								null,
+								"masks/fix_iris_mask_13f08b0d"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 840,
+					"name": "Guelras",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 0.83999997,
+								"power": 2,
+								"ratio": 2.77,
+								"scale": 0.1,
+								"scrolldirection": 0,
+								"speeduv": 2.2,
+								"strength": 0.171
+							},
+							"id": 841,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_f6655407",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/iris/effect.json",
+					"id": 842,
+					"name": "Little Eyes",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"noiseamount": 0.0099999998,
+								"phase": 0.07,
+								"rough": 0.2,
+								"scale": "0.38 0.38",
+								"speed": 0.50999999
+							},
+							"id": 843,
+							"textures": [
+								null,
+								"masks/fix_iris_mask_71a51a31"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/twirl/effect.json",
+					"id": 844,
+					"name": "Nose twirl",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"amount": 1,
+								"angle": 0,
+								"center": "0.81326 0.36239",
+								"feather": 0.01117,
+								"phase": 0,
+								"ratio": 1,
+								"size": 0.012416435,
+								"speed": -1.15
+							},
+							"id": 845
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/waterwaves/effect.json",
+					"id": 846,
+					"name": "Tail edge shimmer",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"direction": 2.2614093,
+								"exponent": 1,
+								"scale": 200,
+								"speed": 5,
+								"strength": 0.02
+							},
+							"id": 847,
+							"textures": [
+								null,
+								"masks/fix_waterwaves_mask_c13e3058"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 848,
+					"name": "Balance (General)",
+					"passes": [
+						{
+							"combos": {
+								"DIRECTION": 1
+							},
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 3.1800001,
+								"strength": 0.036
+							},
+							"id": 849,
+							"textures": [
+								null,
+								"masks/fix_shake_mask_647b9b30"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 850,
+					"name": "Mini Eye #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 0,
+								"center": "0.96217 0.14812",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 1,
+								"size": 0.0058834902,
+								"speed": 1
+							},
+							"id": 851
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 852,
+					"name": "Mini Eye #2",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": -0.5014165,
+								"center": "0.91460 0.25599",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 0.92496943,
+								"size": 0.0069296947,
+								"speed": 1
+							},
+							"id": 853
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 854,
+					"name": "Strings Hair",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 0.5,
+								"power": 1.37,
+								"ratio": 2.25,
+								"scale": 0.22,
+								"scrolldirection": 2.8540409,
+								"speeduv": 5,
+								"strength": 0.153
+							},
+							"id": 855,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_135029a1",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 856,
+					"name": "Strings Back",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 1.55,
+								"power": 1,
+								"ratio": 0.30000001,
+								"scale": 0.050000001,
+								"scrolldirection": 1.6494381,
+								"speeduv": 4.8000002,
+								"strength": 0.278
+							},
+							"id": 857,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_d3944eb2",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/twirl/effect.json",
+					"id": 858,
+					"name": "Honeycomb",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"amount": 0.25,
+								"angle": 3.04,
+								"center": "0.93424 0.31672",
+								"feather": 0.01113,
+								"phase": 0.0,
+								"ratio": 0.31431997,
+								"size": 0.012365767,
+								"speed": 0.25
+							},
+							"id": 859
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 922,
+					"name": "Rig: Hair & Tendrils",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.3,
+								"strength": 0.098
+							},
+							"id": 923,
+							"textures": [
+								null,
+								"masks/rig3_appendages_flow",
+								"masks/rig3_appendages_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/tail_follow/effect.json",
+					"id": 924,
+					"name": "Rig: Tail",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"speed": 1.04,
+								"strength": 0.074,
+								"followstrength": 0.175,
+								"follow": {
+									"script": "'use strict';\n\n// Tail follows the mouse (horizontal axis). Bound to the \"follow\" value of the \"Rig: Tail\"\n// effect on every creature layer (installed by scripts/add_tail_follow.py). Every copy runs the\n// same math on the same input, so all layers stay in register.\n//\n// The target is the cursor's horizontal distance from the tail itself (read from layer K's live\n// position, so it follows the layout script and WE's flip): REACH of the canvas width either side\n// gives full deflection. An under-damped spring makes it snappy with a small overshoot; the output\n// is clamped to -1..1, which keeps the shader's strain guarantee.\n// User property `tailfollow` (0..100 %) scales it; 0 turns it off.\n\nconst TAIL_TX = 3680;      // tail tip, texture px (texture is 5040 wide)\nconst REACH = 0.3;         // fraction of the canvas width for full deflection\nconst OMEGA = 14;          // spring stiffness (rad/s)\nconst ZETA = 0.55;         // damping ratio (< 1: slight overshoot)\n\nlet amount = 1;\nlet pos = 0, vel = 0;\nlet kLayer = null, tried = -1;\n\nfunction clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }\n\nexport function applyUserProperties(changed) {\n\tif (changed.hasOwnProperty('tailfollow')) {\n\t\tamount = clamp(Number(changed.tailfollow) / 100, 0, 1);\n\t}\n}\n\nfunction tailWorldX(w) {\n\tif (!kLayer && engine.runtime > tried) {\n\t\ttried = engine.runtime + 1;\n\t\ttry { kLayer = thisScene.getLayer('K'); } catch (e) { kLayer = null; }\n\t}\n\tif (kLayer) {\n\t\treturn kLayer.origin.x + (TAIL_TX - 2520) * kLayer.scale.x;\n\t}\n\treturn w * 0.72;\n}\n\nexport function update(value) {\n\tconst w = engine.canvasSize.x;\n\tif (!(w > 0)) {\n\t\treturn value;\n\t}\n\tconst target = clamp((input.cursorWorldPosition.x - tailWorldX(w)) / (REACH * w), -1, 1) * amount;\n\tlet dt = Math.min(engine.frametime, 0.05);\n\twhile (dt > 0) {                                   // sub-step for a stable spring\n\t\tconst h = Math.min(dt, 1 / 120);\n\t\tconst acc = OMEGA * OMEGA * (target - pos) - 2 * ZETA * OMEGA * vel;\n\t\tvel += acc * h;\n\t\tpos += vel * h;\n\t\tdt -= h;\n\t}\n\treturn clamp(pos, -1, 1);\n}\n",
+									"value": 0.0
+								}
+							},
+							"id": 925,
+							"textures": [
+								null,
+								"masks/rig2_tail_flow",
+								"masks/rig2_tail_time",
+								"masks/arm_follow_flow16"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 926,
+					"name": "Rig: Head & Body",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.9,
+								"strength": 0.082
+							},
+							"id": 927,
+							"textures": [
+								null,
+								"masks/rig4_body_flow",
+								"masks/rig4_body_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1254,
+					"name": "Rig: Belly",
+					"passes": [
+						{
+							"id": 1255,
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.75,
+								"strength": 0.067
+							},
+							"textures": [
+								null,
+								"masks/rig5_belly_flow",
+								"masks/rig5_belly_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 979,
+					"name": "Rig: Face",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.6,
+								"strength": 0.051
+							},
+							"id": 980,
+							"textures": [
+								null,
+								"masks/rig4_face_flow",
+								"masks/rig4_face_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id": 122,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"Distorsion 1": 0.5,
+								"Distorsion 2": 0,
+								"center": "0.88288 0.55208",
+								"chromaticAberration": 1,
+								"general": 1,
+								"size": 0.4151639,
+								"ui_editor_properties_opacity": 1,
+								"zoom": 1
+							},
+							"id": 125
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/lens_fold_clip/effect.json",
+					"id": 1230,
+					"name": "Lens fold clip",
+					"passes": [
+						{
+							"id": 1231,
+							"constantshadervalues": {
+								"center": "0.88288 0.55208",
+								"scale": "0.71171 1.66066",
+								"fold": "0.55 0.62"
+							}
+						}
+					],
+					"visible": true
+				}
+			],
+			"id": 74,
+			"image": "models/M.json",
+			"name": "M",
+			"origin": "2585.00000 1080.00000 0.00000",
+			"scale": "1.01000 1.01000 1.00000",
+			"size": "5040.00000 2160.00000"
+		},
+		{
+			"alpha": 0.14,
+			"castshadow": false,
+			"id": 1087,
+			"image": "models/CB_Chest.json",
+			"name": "CB_Chest",
+			"origin": "2595.00000 1086.00000 0.00000",
+			"scale": "1.00000 1.00000 1.00000",
+			"size": "5040.00000 2160.00000",
+			"effects": [
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 1077,
+					"name": "(CB_Chest) Audio bands 0-1",
+					"passes": [
+						{
+							"combos": {
+								"AUDIOPROCESSING": 3,
+								"PULSEALPHA": 1,
+								"BLENDMODE": 0
+							},
+							"constantshadervalues": {
+								"audioamount": 2,
+								"audiobounds": "0.25 1.2",
+								"audioexponent": 0.35,
+								"frequencymax": 1,
+								"frequencymin": 0,
+								"tinthigh": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								},
+								"tintlow": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								}
+							},
+							"id": 1078
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 1079,
+					"name": "Guelras",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 0.83999997,
+								"power": 2,
+								"ratio": 2.77,
+								"scale": 0.1,
+								"scrolldirection": 0,
+								"speeduv": 2.2,
+								"strength": 0.171
+							},
+							"id": 1080,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_f6655407",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1081,
+					"name": "Balance (General)",
+					"passes": [
+						{
+							"combos": {
+								"DIRECTION": 1
+							},
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 3.1800001,
+								"strength": 0.036
+							},
+							"id": 1082,
+							"textures": [
+								null,
+								"masks/fix_shake_mask_647b9b30"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1083,
+					"name": "Rig: Head & Body",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.9,
+								"strength": 0.082
+							},
+							"id": 1084,
+							"textures": [
+								null,
+								"masks/rig4_body_flow",
+								"masks/rig4_body_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1256,
+					"name": "Rig: Belly",
+					"passes": [
+						{
+							"id": 1257,
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.75,
+								"strength": 0.067
+							},
+							"textures": [
+								null,
+								"masks/rig5_belly_flow",
+								"masks/rig5_belly_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id": 1085,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"Distorsion 1": 0.5,
+								"Distorsion 2": 0,
+								"center": "0.88288 0.55208",
+								"chromaticAberration": 1,
+								"general": 1,
+								"size": 0.4151639,
+								"ui_editor_properties_opacity": 1,
+								"zoom": 1
+							},
+							"id": 1086
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/lens_fold_clip/effect.json",
+					"id": 1232,
+					"name": "Lens fold clip",
+					"passes": [
+						{
+							"id": 1233,
+							"constantshadervalues": {
+								"center": "0.88288 0.55208",
+								"scale": "0.71171 1.66066",
+								"fold": "0.55 0.62"
+							}
+						}
+					],
+					"visible": true
+				}
+			]
+		},
+		{
+			"alpha": 0.14,
+			"castshadow": false,
+			"id": 1096,
+			"image": "models/CB_Tail4.json",
+			"name": "CB_Tail4",
+			"origin": "2595.00000 1086.00000 0.00000",
+			"scale": "1.00000 1.00000 1.00000",
+			"size": "5040.00000 2160.00000",
+			"effects": [
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 1088,
+					"name": "(CB_Tail4) Audio bands 2-4",
+					"passes": [
+						{
+							"combos": {
+								"AUDIOPROCESSING": 3,
+								"PULSEALPHA": 1,
+								"BLENDMODE": 0
+							},
+							"constantshadervalues": {
+								"audioamount": 2,
+								"audiobounds": "0.18 1.0",
+								"audioexponent": 0.35,
+								"frequencymax": 4,
+								"frequencymin": 2,
+								"tinthigh": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								},
+								"tintlow": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								}
+							},
+							"id": 1089
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/tail_follow/effect.json",
+					"id": 1090,
+					"name": "Rig: Tail",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"speed": 1.04,
+								"strength": 0.074,
+								"followstrength": 0.175,
+								"follow": {
+									"script": "'use strict';\n\n// Tail follows the mouse (horizontal axis). Bound to the \"follow\" value of the \"Rig: Tail\"\n// effect on every creature layer (installed by scripts/add_tail_follow.py). Every copy runs the\n// same math on the same input, so all layers stay in register.\n//\n// The target is the cursor's horizontal distance from the tail itself (read from layer K's live\n// position, so it follows the layout script and WE's flip): REACH of the canvas width either side\n// gives full deflection. An under-damped spring makes it snappy with a small overshoot; the output\n// is clamped to -1..1, which keeps the shader's strain guarantee.\n// User property `tailfollow` (0..100 %) scales it; 0 turns it off.\n\nconst TAIL_TX = 3680;      // tail tip, texture px (texture is 5040 wide)\nconst REACH = 0.3;         // fraction of the canvas width for full deflection\nconst OMEGA = 14;          // spring stiffness (rad/s)\nconst ZETA = 0.55;         // damping ratio (< 1: slight overshoot)\n\nlet amount = 1;\nlet pos = 0, vel = 0;\nlet kLayer = null, tried = -1;\n\nfunction clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }\n\nexport function applyUserProperties(changed) {\n\tif (changed.hasOwnProperty('tailfollow')) {\n\t\tamount = clamp(Number(changed.tailfollow) / 100, 0, 1);\n\t}\n}\n\nfunction tailWorldX(w) {\n\tif (!kLayer && engine.runtime > tried) {\n\t\ttried = engine.runtime + 1;\n\t\ttry { kLayer = thisScene.getLayer('K'); } catch (e) { kLayer = null; }\n\t}\n\tif (kLayer) {\n\t\treturn kLayer.origin.x + (TAIL_TX - 2520) * kLayer.scale.x;\n\t}\n\treturn w * 0.72;\n}\n\nexport function update(value) {\n\tconst w = engine.canvasSize.x;\n\tif (!(w > 0)) {\n\t\treturn value;\n\t}\n\tconst target = clamp((input.cursorWorldPosition.x - tailWorldX(w)) / (REACH * w), -1, 1) * amount;\n\tlet dt = Math.min(engine.frametime, 0.05);\n\twhile (dt > 0) {                                   // sub-step for a stable spring\n\t\tconst h = Math.min(dt, 1 / 120);\n\t\tconst acc = OMEGA * OMEGA * (target - pos) - 2 * ZETA * OMEGA * vel;\n\t\tvel += acc * h;\n\t\tpos += vel * h;\n\t\tdt -= h;\n\t}\n\treturn clamp(pos, -1, 1);\n}\n",
+									"value": 0.0
+								}
+							},
+							"id": 1091,
+							"textures": [
+								null,
+								"masks/rig2_tail_flow",
+								"masks/rig2_tail_time",
+								"masks/arm_follow_flow16"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1092,
+					"name": "Rig: Head & Body",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.9,
+								"strength": 0.082
+							},
+							"id": 1093,
+							"textures": [
+								null,
+								"masks/rig4_body_flow",
+								"masks/rig4_body_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1258,
+					"name": "Rig: Belly",
+					"passes": [
+						{
+							"id": 1259,
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.75,
+								"strength": 0.067
+							},
+							"textures": [
+								null,
+								"masks/rig5_belly_flow",
+								"masks/rig5_belly_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id": 1094,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"Distorsion 1": 0.5,
+								"Distorsion 2": 0,
+								"center": "0.88288 0.55208",
+								"chromaticAberration": 1,
+								"general": 1,
+								"size": 0.4151639,
+								"ui_editor_properties_opacity": 1,
+								"zoom": 1
+							},
+							"id": 1095
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/lens_fold_clip/effect.json",
+					"id": 1234,
+					"name": "Lens fold clip",
+					"passes": [
+						{
+							"id": 1235,
+							"constantshadervalues": {
+								"center": "0.88288 0.55208",
+								"scale": "0.71171 1.66066",
+								"fold": "0.55 0.62"
+							}
+						}
+					],
+					"visible": true
+				}
+			]
+		},
+		{
+			"alpha": 0.14,
+			"castshadow": false,
+			"id": 1105,
+			"image": "models/CB_Tail3.json",
+			"name": "CB_Tail3",
+			"origin": "2595.00000 1086.00000 0.00000",
+			"scale": "1.00000 1.00000 1.00000",
+			"size": "5040.00000 2160.00000",
+			"effects": [
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 1097,
+					"name": "(CB_Tail3) Audio bands 5-7",
+					"passes": [
+						{
+							"combos": {
+								"AUDIOPROCESSING": 3,
+								"PULSEALPHA": 1,
+								"BLENDMODE": 0
+							},
+							"constantshadervalues": {
+								"audioamount": 2,
+								"audiobounds": "0.12 0.8",
+								"audioexponent": 0.35,
+								"frequencymax": 7,
+								"frequencymin": 5,
+								"tinthigh": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								},
+								"tintlow": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								}
+							},
+							"id": 1098
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/tail_follow/effect.json",
+					"id": 1099,
+					"name": "Rig: Tail",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"speed": 1.04,
+								"strength": 0.074,
+								"followstrength": 0.175,
+								"follow": {
+									"script": "'use strict';\n\n// Tail follows the mouse (horizontal axis). Bound to the \"follow\" value of the \"Rig: Tail\"\n// effect on every creature layer (installed by scripts/add_tail_follow.py). Every copy runs the\n// same math on the same input, so all layers stay in register.\n//\n// The target is the cursor's horizontal distance from the tail itself (read from layer K's live\n// position, so it follows the layout script and WE's flip): REACH of the canvas width either side\n// gives full deflection. An under-damped spring makes it snappy with a small overshoot; the output\n// is clamped to -1..1, which keeps the shader's strain guarantee.\n// User property `tailfollow` (0..100 %) scales it; 0 turns it off.\n\nconst TAIL_TX = 3680;      // tail tip, texture px (texture is 5040 wide)\nconst REACH = 0.3;         // fraction of the canvas width for full deflection\nconst OMEGA = 14;          // spring stiffness (rad/s)\nconst ZETA = 0.55;         // damping ratio (< 1: slight overshoot)\n\nlet amount = 1;\nlet pos = 0, vel = 0;\nlet kLayer = null, tried = -1;\n\nfunction clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }\n\nexport function applyUserProperties(changed) {\n\tif (changed.hasOwnProperty('tailfollow')) {\n\t\tamount = clamp(Number(changed.tailfollow) / 100, 0, 1);\n\t}\n}\n\nfunction tailWorldX(w) {\n\tif (!kLayer && engine.runtime > tried) {\n\t\ttried = engine.runtime + 1;\n\t\ttry { kLayer = thisScene.getLayer('K'); } catch (e) { kLayer = null; }\n\t}\n\tif (kLayer) {\n\t\treturn kLayer.origin.x + (TAIL_TX - 2520) * kLayer.scale.x;\n\t}\n\treturn w * 0.72;\n}\n\nexport function update(value) {\n\tconst w = engine.canvasSize.x;\n\tif (!(w > 0)) {\n\t\treturn value;\n\t}\n\tconst target = clamp((input.cursorWorldPosition.x - tailWorldX(w)) / (REACH * w), -1, 1) * amount;\n\tlet dt = Math.min(engine.frametime, 0.05);\n\twhile (dt > 0) {                                   // sub-step for a stable spring\n\t\tconst h = Math.min(dt, 1 / 120);\n\t\tconst acc = OMEGA * OMEGA * (target - pos) - 2 * ZETA * OMEGA * vel;\n\t\tvel += acc * h;\n\t\tpos += vel * h;\n\t\tdt -= h;\n\t}\n\treturn clamp(pos, -1, 1);\n}\n",
+									"value": 0.0
+								}
+							},
+							"id": 1100,
+							"textures": [
+								null,
+								"masks/rig2_tail_flow",
+								"masks/rig2_tail_time",
+								"masks/arm_follow_flow16"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1101,
+					"name": "Rig: Head & Body",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.9,
+								"strength": 0.082
+							},
+							"id": 1102,
+							"textures": [
+								null,
+								"masks/rig4_body_flow",
+								"masks/rig4_body_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1260,
+					"name": "Rig: Belly",
+					"passes": [
+						{
+							"id": 1261,
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.75,
+								"strength": 0.067
+							},
+							"textures": [
+								null,
+								"masks/rig5_belly_flow",
+								"masks/rig5_belly_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id": 1103,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"Distorsion 1": 0.5,
+								"Distorsion 2": 0,
+								"center": "0.88288 0.55208",
+								"chromaticAberration": 1,
+								"general": 1,
+								"size": 0.4151639,
+								"ui_editor_properties_opacity": 1,
+								"zoom": 1
+							},
+							"id": 1104
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/lens_fold_clip/effect.json",
+					"id": 1236,
+					"name": "Lens fold clip",
+					"passes": [
+						{
+							"id": 1237,
+							"constantshadervalues": {
+								"center": "0.88288 0.55208",
+								"scale": "0.71171 1.66066",
+								"fold": "0.55 0.62"
+							}
+						}
+					],
+					"visible": true
+				}
+			]
+		},
+		{
+			"alpha": 0.14,
+			"castshadow": false,
+			"id": 1116,
+			"image": "models/CB_Tail2.json",
+			"name": "CB_Tail2",
+			"origin": "2595.00000 1086.00000 0.00000",
+			"scale": "1.00000 1.00000 1.00000",
+			"size": "5040.00000 2160.00000",
+			"effects": [
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 1106,
+					"name": "(CB_Tail2) Audio bands 8-10",
+					"passes": [
+						{
+							"combos": {
+								"AUDIOPROCESSING": 3,
+								"PULSEALPHA": 1,
+								"BLENDMODE": 0
+							},
+							"constantshadervalues": {
+								"audioamount": 2,
+								"audiobounds": "0.08 0.6",
+								"audioexponent": 0.35,
+								"frequencymax": 10,
+								"frequencymin": 8,
+								"tinthigh": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								},
+								"tintlow": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								}
+							},
+							"id": 1107
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/waterwaves/effect.json",
+					"id": 1108,
+					"name": "Tail edge shimmer",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"direction": 2.2614093,
+								"exponent": 1,
+								"scale": 200,
+								"speed": 5,
+								"strength": 0.02
+							},
+							"id": 1109,
+							"textures": [
+								null,
+								"masks/fix_waterwaves_mask_c13e3058"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/tail_follow/effect.json",
+					"id": 1110,
+					"name": "Rig: Tail",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"speed": 1.04,
+								"strength": 0.074,
+								"followstrength": 0.175,
+								"follow": {
+									"script": "'use strict';\n\n// Tail follows the mouse (horizontal axis). Bound to the \"follow\" value of the \"Rig: Tail\"\n// effect on every creature layer (installed by scripts/add_tail_follow.py). Every copy runs the\n// same math on the same input, so all layers stay in register.\n//\n// The target is the cursor's horizontal distance from the tail itself (read from layer K's live\n// position, so it follows the layout script and WE's flip): REACH of the canvas width either side\n// gives full deflection. An under-damped spring makes it snappy with a small overshoot; the output\n// is clamped to -1..1, which keeps the shader's strain guarantee.\n// User property `tailfollow` (0..100 %) scales it; 0 turns it off.\n\nconst TAIL_TX = 3680;      // tail tip, texture px (texture is 5040 wide)\nconst REACH = 0.3;         // fraction of the canvas width for full deflection\nconst OMEGA = 14;          // spring stiffness (rad/s)\nconst ZETA = 0.55;         // damping ratio (< 1: slight overshoot)\n\nlet amount = 1;\nlet pos = 0, vel = 0;\nlet kLayer = null, tried = -1;\n\nfunction clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }\n\nexport function applyUserProperties(changed) {\n\tif (changed.hasOwnProperty('tailfollow')) {\n\t\tamount = clamp(Number(changed.tailfollow) / 100, 0, 1);\n\t}\n}\n\nfunction tailWorldX(w) {\n\tif (!kLayer && engine.runtime > tried) {\n\t\ttried = engine.runtime + 1;\n\t\ttry { kLayer = thisScene.getLayer('K'); } catch (e) { kLayer = null; }\n\t}\n\tif (kLayer) {\n\t\treturn kLayer.origin.x + (TAIL_TX - 2520) * kLayer.scale.x;\n\t}\n\treturn w * 0.72;\n}\n\nexport function update(value) {\n\tconst w = engine.canvasSize.x;\n\tif (!(w > 0)) {\n\t\treturn value;\n\t}\n\tconst target = clamp((input.cursorWorldPosition.x - tailWorldX(w)) / (REACH * w), -1, 1) * amount;\n\tlet dt = Math.min(engine.frametime, 0.05);\n\twhile (dt > 0) {                                   // sub-step for a stable spring\n\t\tconst h = Math.min(dt, 1 / 120);\n\t\tconst acc = OMEGA * OMEGA * (target - pos) - 2 * ZETA * OMEGA * vel;\n\t\tvel += acc * h;\n\t\tpos += vel * h;\n\t\tdt -= h;\n\t}\n\treturn clamp(pos, -1, 1);\n}\n",
+									"value": 0.0
+								}
+							},
+							"id": 1111,
+							"textures": [
+								null,
+								"masks/rig2_tail_flow",
+								"masks/rig2_tail_time",
+								"masks/arm_follow_flow16"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1112,
+					"name": "Rig: Head & Body",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.9,
+								"strength": 0.082
+							},
+							"id": 1113,
+							"textures": [
+								null,
+								"masks/rig4_body_flow",
+								"masks/rig4_body_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1262,
+					"name": "Rig: Belly",
+					"passes": [
+						{
+							"id": 1263,
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.75,
+								"strength": 0.067
+							},
+							"textures": [
+								null,
+								"masks/rig5_belly_flow",
+								"masks/rig5_belly_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id": 1114,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"Distorsion 1": 0.5,
+								"Distorsion 2": 0,
+								"center": "0.88288 0.55208",
+								"chromaticAberration": 1,
+								"general": 1,
+								"size": 0.4151639,
+								"ui_editor_properties_opacity": 1,
+								"zoom": 1
+							},
+							"id": 1115
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/lens_fold_clip/effect.json",
+					"id": 1238,
+					"name": "Lens fold clip",
+					"passes": [
+						{
+							"id": 1239,
+							"constantshadervalues": {
+								"center": "0.88288 0.55208",
+								"scale": "0.71171 1.66066",
+								"fold": "0.55 0.62"
+							}
+						}
+					],
+					"visible": true
+				}
+			]
+		},
+		{
+			"alpha": 0.14,
+			"castshadow": false,
+			"id": 1125,
+			"image": "models/CB_Tail1.json",
+			"name": "CB_Tail1",
+			"origin": "2595.00000 1086.00000 0.00000",
+			"scale": "1.00000 1.00000 1.00000",
+			"size": "5040.00000 2160.00000",
+			"effects": [
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 1117,
+					"name": "(CB_Tail1) Audio bands 11-15",
+					"passes": [
+						{
+							"combos": {
+								"AUDIOPROCESSING": 3,
+								"PULSEALPHA": 1,
+								"BLENDMODE": 0
+							},
+							"constantshadervalues": {
+								"audioamount": 2,
+								"audiobounds": "0.05 0.45",
+								"audioexponent": 0.35,
+								"frequencymax": 15,
+								"frequencymin": 11,
+								"tinthigh": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								},
+								"tintlow": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								}
+							},
+							"id": 1118
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/tail_follow/effect.json",
+					"id": 1119,
+					"name": "Rig: Tail",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"speed": 1.04,
+								"strength": 0.074,
+								"followstrength": 0.175,
+								"follow": {
+									"script": "'use strict';\n\n// Tail follows the mouse (horizontal axis). Bound to the \"follow\" value of the \"Rig: Tail\"\n// effect on every creature layer (installed by scripts/add_tail_follow.py). Every copy runs the\n// same math on the same input, so all layers stay in register.\n//\n// The target is the cursor's horizontal distance from the tail itself (read from layer K's live\n// position, so it follows the layout script and WE's flip): REACH of the canvas width either side\n// gives full deflection. An under-damped spring makes it snappy with a small overshoot; the output\n// is clamped to -1..1, which keeps the shader's strain guarantee.\n// User property `tailfollow` (0..100 %) scales it; 0 turns it off.\n\nconst TAIL_TX = 3680;      // tail tip, texture px (texture is 5040 wide)\nconst REACH = 0.3;         // fraction of the canvas width for full deflection\nconst OMEGA = 14;          // spring stiffness (rad/s)\nconst ZETA = 0.55;         // damping ratio (< 1: slight overshoot)\n\nlet amount = 1;\nlet pos = 0, vel = 0;\nlet kLayer = null, tried = -1;\n\nfunction clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }\n\nexport function applyUserProperties(changed) {\n\tif (changed.hasOwnProperty('tailfollow')) {\n\t\tamount = clamp(Number(changed.tailfollow) / 100, 0, 1);\n\t}\n}\n\nfunction tailWorldX(w) {\n\tif (!kLayer && engine.runtime > tried) {\n\t\ttried = engine.runtime + 1;\n\t\ttry { kLayer = thisScene.getLayer('K'); } catch (e) { kLayer = null; }\n\t}\n\tif (kLayer) {\n\t\treturn kLayer.origin.x + (TAIL_TX - 2520) * kLayer.scale.x;\n\t}\n\treturn w * 0.72;\n}\n\nexport function update(value) {\n\tconst w = engine.canvasSize.x;\n\tif (!(w > 0)) {\n\t\treturn value;\n\t}\n\tconst target = clamp((input.cursorWorldPosition.x - tailWorldX(w)) / (REACH * w), -1, 1) * amount;\n\tlet dt = Math.min(engine.frametime, 0.05);\n\twhile (dt > 0) {                                   // sub-step for a stable spring\n\t\tconst h = Math.min(dt, 1 / 120);\n\t\tconst acc = OMEGA * OMEGA * (target - pos) - 2 * ZETA * OMEGA * vel;\n\t\tvel += acc * h;\n\t\tpos += vel * h;\n\t\tdt -= h;\n\t}\n\treturn clamp(pos, -1, 1);\n}\n",
+									"value": 0.0
+								}
+							},
+							"id": 1120,
+							"textures": [
+								null,
+								"masks/rig2_tail_flow",
+								"masks/rig2_tail_time",
+								"masks/arm_follow_flow16"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1121,
+					"name": "Rig: Head & Body",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.9,
+								"strength": 0.082
+							},
+							"id": 1122,
+							"textures": [
+								null,
+								"masks/rig4_body_flow",
+								"masks/rig4_body_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1264,
+					"name": "Rig: Belly",
+					"passes": [
+						{
+							"id": 1265,
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.75,
+								"strength": 0.067
+							},
+							"textures": [
+								null,
+								"masks/rig5_belly_flow",
+								"masks/rig5_belly_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id": 1123,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"Distorsion 1": 0.5,
+								"Distorsion 2": 0,
+								"center": "0.88288 0.55208",
+								"chromaticAberration": 1,
+								"general": 1,
+								"size": 0.4151639,
+								"ui_editor_properties_opacity": 1,
+								"zoom": 1
+							},
+							"id": 1124
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/lens_fold_clip/effect.json",
+					"id": 1240,
+					"name": "Lens fold clip",
+					"passes": [
+						{
+							"id": 1241,
+							"constantshadervalues": {
+								"center": "0.88288 0.55208",
+								"scale": "0.71171 1.66066",
+								"fold": "0.55 0.62"
+							}
+						}
+					],
+					"visible": true
+				}
+			]
+		},
+		{
+			"alpha": 0.45,
+			"castshadow": false,
+			"effects": [
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 274,
+					"name": "(C2) Bass",
+					"passes": [
+						{
+							"combos": {
+								"AUDIOPROCESSING": 3,
+								"PULSEALPHA": 1,
+								"BLENDMODE": 0
+							},
+							"constantshadervalues": {
+								"audioamount": 2,
+								"audiobounds": "0.25 1.2",
+								"audioexponent": 0.35,
+								"frequencymax": 2,
+								"frequencymin": 0,
+								"tinthigh": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								},
+								"tintlow": {
+									"user": "cyancolor",
+									"value": "0.18824 0.96471 1.00000"
+								}
+							},
+							"id": 275
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 868,
+					"name": "Olhar #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 0.82068151,
+								"center": "0.83175 0.42204",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 0.7697919,
+								"size": 0.01338407,
+								"speed": 0.51999998
+							},
+							"id": 869
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 870,
+					"name": "Olho #2",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 1.1971339,
+								"center": "0.84614 0.30772",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 1.0205573,
+								"size": 0.016285263,
+								"speed": 0.5
+							},
+							"id": 871
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/iris/effect.json",
+					"id": 872,
+					"name": "Olho menor #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"noiseamount": 0.5,
+								"phase": 0,
+								"rough": 0.2,
+								"scale": "1 1",
+								"speed": 1
+							},
+							"id": 873,
+							"textures": [
+								null,
+								"masks/fix_iris_mask_13f08b0d"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 874,
+					"name": "Guelras",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 0.83999997,
+								"power": 2,
+								"ratio": 2.77,
+								"scale": 0.1,
+								"scrolldirection": 0,
+								"speeduv": 2.2,
+								"strength": 0.171
+							},
+							"id": 875,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_f6655407",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/iris/effect.json",
+					"id": 876,
+					"name": "Little Eyes",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"noiseamount": 0.0099999998,
+								"phase": 0.07,
+								"rough": 0.2,
+								"scale": "0.38 0.38",
+								"speed": 0.50999999
+							},
+							"id": 877,
+							"textures": [
+								null,
+								"masks/fix_iris_mask_71a51a31"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/twirl/effect.json",
+					"id": 878,
+					"name": "Nose twirl",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"amount": 1,
+								"angle": 0,
+								"center": "0.81326 0.36239",
+								"feather": 0.01117,
+								"phase": 0,
+								"ratio": 1,
+								"size": 0.012416435,
+								"speed": -1.15
+							},
+							"id": 879
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/waterwaves/effect.json",
+					"id": 880,
+					"name": "Tail edge shimmer",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"direction": 2.2614093,
+								"exponent": 1,
+								"scale": 200,
+								"speed": 5,
+								"strength": 0.02
+							},
+							"id": 881,
+							"textures": [
+								null,
+								"masks/fix_waterwaves_mask_c13e3058"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 882,
+					"name": "Balance (General)",
+					"passes": [
+						{
+							"combos": {
+								"DIRECTION": 1
+							},
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 3.1800001,
+								"strength": 0.036
+							},
+							"id": 883,
+							"textures": [
+								null,
+								"masks/fix_shake_mask_647b9b30"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 884,
+					"name": "Mini Eye #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 0,
+								"center": "0.96217 0.14812",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 1,
+								"size": 0.0058834902,
+								"speed": 1
+							},
+							"id": 885
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 886,
+					"name": "Mini Eye #2",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": -0.5014165,
+								"center": "0.91460 0.25599",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 0.92496943,
+								"size": 0.0069296947,
+								"speed": 1
+							},
+							"id": 887
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 888,
+					"name": "Strings Hair",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 0.5,
+								"power": 1.37,
+								"ratio": 2.25,
+								"scale": 0.22,
+								"scrolldirection": 2.8540409,
+								"speeduv": 5,
+								"strength": 0.153
+							},
+							"id": 889,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_135029a1",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 890,
+					"name": "Strings Back",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 1.55,
+								"power": 1,
+								"ratio": 0.30000001,
+								"scale": 0.050000001,
+								"scrolldirection": 1.6494381,
+								"speeduv": 4.8000002,
+								"strength": 0.278
+							},
+							"id": 891,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_d3944eb2",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/twirl/effect.json",
+					"id": 892,
+					"name": "Honeycomb",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"amount": 0.25,
+								"angle": 3.04,
+								"center": "0.93424 0.31672",
+								"feather": 0.01113,
+								"phase": 0.0,
+								"ratio": 0.31431997,
+								"size": 0.012365767,
+								"speed": 0.25
+							},
+							"id": 893
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 928,
+					"name": "Rig: Hair & Tendrils",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.3,
+								"strength": 0.098
+							},
+							"id": 929,
+							"textures": [
+								null,
+								"masks/rig3_appendages_flow",
+								"masks/rig3_appendages_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/tail_follow/effect.json",
+					"id": 930,
+					"name": "Rig: Tail",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"speed": 1.04,
+								"strength": 0.074,
+								"followstrength": 0.175,
+								"follow": {
+									"script": "'use strict';\n\n// Tail follows the mouse (horizontal axis). Bound to the \"follow\" value of the \"Rig: Tail\"\n// effect on every creature layer (installed by scripts/add_tail_follow.py). Every copy runs the\n// same math on the same input, so all layers stay in register.\n//\n// The target is the cursor's horizontal distance from the tail itself (read from layer K's live\n// position, so it follows the layout script and WE's flip): REACH of the canvas width either side\n// gives full deflection. An under-damped spring makes it snappy with a small overshoot; the output\n// is clamped to -1..1, which keeps the shader's strain guarantee.\n// User property `tailfollow` (0..100 %) scales it; 0 turns it off.\n\nconst TAIL_TX = 3680;      // tail tip, texture px (texture is 5040 wide)\nconst REACH = 0.3;         // fraction of the canvas width for full deflection\nconst OMEGA = 14;          // spring stiffness (rad/s)\nconst ZETA = 0.55;         // damping ratio (< 1: slight overshoot)\n\nlet amount = 1;\nlet pos = 0, vel = 0;\nlet kLayer = null, tried = -1;\n\nfunction clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }\n\nexport function applyUserProperties(changed) {\n\tif (changed.hasOwnProperty('tailfollow')) {\n\t\tamount = clamp(Number(changed.tailfollow) / 100, 0, 1);\n\t}\n}\n\nfunction tailWorldX(w) {\n\tif (!kLayer && engine.runtime > tried) {\n\t\ttried = engine.runtime + 1;\n\t\ttry { kLayer = thisScene.getLayer('K'); } catch (e) { kLayer = null; }\n\t}\n\tif (kLayer) {\n\t\treturn kLayer.origin.x + (TAIL_TX - 2520) * kLayer.scale.x;\n\t}\n\treturn w * 0.72;\n}\n\nexport function update(value) {\n\tconst w = engine.canvasSize.x;\n\tif (!(w > 0)) {\n\t\treturn value;\n\t}\n\tconst target = clamp((input.cursorWorldPosition.x - tailWorldX(w)) / (REACH * w), -1, 1) * amount;\n\tlet dt = Math.min(engine.frametime, 0.05);\n\twhile (dt > 0) {                                   // sub-step for a stable spring\n\t\tconst h = Math.min(dt, 1 / 120);\n\t\tconst acc = OMEGA * OMEGA * (target - pos) - 2 * ZETA * OMEGA * vel;\n\t\tvel += acc * h;\n\t\tpos += vel * h;\n\t\tdt -= h;\n\t}\n\treturn clamp(pos, -1, 1);\n}\n",
+									"value": 0.0
+								}
+							},
+							"id": 931,
+							"textures": [
+								null,
+								"masks/rig2_tail_flow",
+								"masks/rig2_tail_time",
+								"masks/arm_follow_flow16"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 932,
+					"name": "Rig: Head & Body",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.9,
+								"strength": 0.082
+							},
+							"id": 933,
+							"textures": [
+								null,
+								"masks/rig4_body_flow",
+								"masks/rig4_body_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1266,
+					"name": "Rig: Belly",
+					"passes": [
+						{
+							"id": 1267,
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.75,
+								"strength": 0.067
+							},
+							"textures": [
+								null,
+								"masks/rig5_belly_flow",
+								"masks/rig5_belly_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 981,
+					"name": "Rig: Face",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.6,
+								"strength": 0.051
+							},
+							"id": 982,
+							"textures": [
+								null,
+								"masks/rig4_face_flow",
+								"masks/rig4_face_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id": 114,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"Distorsion 1": 0.5,
+								"Distorsion 2": 0,
+								"center": "0.88288 0.55208",
+								"chromaticAberration": 1,
+								"general": 1,
+								"size": 0.4151639,
+								"ui_editor_properties_opacity": 1,
+								"zoom": 1
+							},
+							"id": 115
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/lens_fold_clip/effect.json",
+					"id": 1242,
+					"name": "Lens fold clip",
+					"passes": [
+						{
+							"id": 1243,
+							"constantshadervalues": {
+								"center": "0.88288 0.55208",
+								"scale": "0.71171 1.66066",
+								"fold": "0.55 0.62"
+							}
+						}
+					],
+					"visible": true
+				}
+			],
+			"id": 235,
+			"image": "models/C.json",
+			"name": "C2",
+			"origin": "2595.00000 1086.00000 0.00000",
+			"scale": "1.00000 1.00000 1.00000",
+			"size": "5040.00000 2160.00000"
+		},
+		{
+			"castshadow": false,
+			"effects": [
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 985,
+					"name": "Blink: dot 1",
+					"passes": [
+						{
+							"combos": {
+								"PULSEALPHA": 1,
+								"PULSECOLOR": 0
+							},
+							"constantshadervalues": {
+								"amount": 1,
+								"bounds": "0 0.15",
+								"noiseamount": 0,
+								"noisespeed": 0.5,
+								"phase": 0.0,
+								"power": 1,
+								"speed": 1.6,
+								"tinthigh": "1 1 1",
+								"tintlow": "1 1 1"
+							},
+							"id": 986,
+							"textures": [
+								null,
+								null,
+								"masks/rig4_blink_1"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 987,
+					"name": "Blink: dot 2",
+					"passes": [
+						{
+							"combos": {
+								"PULSEALPHA": 1,
+								"PULSECOLOR": 0
+							},
+							"constantshadervalues": {
+								"amount": 1,
+								"bounds": "0 0.15",
+								"noiseamount": 0,
+								"noisespeed": 0.5,
+								"phase": 0.9,
+								"power": 1,
+								"speed": 1.6,
+								"tinthigh": "1 1 1",
+								"tintlow": "1 1 1"
+							},
+							"id": 988,
+							"textures": [
+								null,
+								null,
+								"masks/rig4_blink_2"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 989,
+					"name": "Blink: dot 3",
+					"passes": [
+						{
+							"combos": {
+								"PULSEALPHA": 1,
+								"PULSECOLOR": 0
+							},
+							"constantshadervalues": {
+								"amount": 1,
+								"bounds": "0 0.15",
+								"noiseamount": 0,
+								"noisespeed": 0.5,
+								"phase": 1.8,
+								"power": 1,
+								"speed": 1.6,
+								"tinthigh": "1 1 1",
+								"tintlow": "1 1 1"
+							},
+							"id": 990,
+							"textures": [
+								null,
+								null,
+								"masks/rig4_blink_3"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 991,
+					"name": "Blink: dot 4",
+					"passes": [
+						{
+							"combos": {
+								"PULSEALPHA": 1,
+								"PULSECOLOR": 0
+							},
+							"constantshadervalues": {
+								"amount": 1,
+								"bounds": "0 0.15",
+								"noiseamount": 0,
+								"noisespeed": 0.5,
+								"phase": 2.7,
+								"power": 1,
+								"speed": 1.6,
+								"tinthigh": "1 1 1",
+								"tintlow": "1 1 1"
+							},
+							"id": 992,
+							"textures": [
+								null,
+								null,
+								"masks/rig4_blink_4"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/pulse/effect.json",
+					"id": 993,
+					"name": "Blink: ring eye",
+					"passes": [
+						{
+							"combos": {
+								"PULSEALPHA": 1,
+								"PULSECOLOR": 0
+							},
+							"constantshadervalues": {
+								"amount": 1,
+								"bounds": "0 0.15",
+								"noiseamount": 0,
+								"noisespeed": 0.5,
+								"phase": 3.6,
+								"power": 1,
+								"speed": 1.6,
+								"tinthigh": "1 1 1",
+								"tintlow": "1 1 1"
+							},
+							"id": 994,
+							"textures": [
+								null,
+								null,
+								"masks/rig4_blink_5"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 531,
+					"name": "Olhar #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 0.82068151,
+								"center": "0.83175 0.42204",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 0.7697919,
+								"size": 0.01338407,
+								"speed": 0.51999998
+							},
+							"id": 532
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 533,
+					"name": "Olho #2",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 1.1971339,
+								"center": "0.84614 0.30772",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 1.0205573,
+								"size": 0.016285263,
+								"speed": 0.5
+							},
+							"id": 534
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/iris/effect.json",
+					"id": 535,
+					"name": "Olho menor #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"noiseamount": 0.5,
+								"phase": 0,
+								"rough": 0.2,
+								"scale": "1 1",
+								"speed": 1
+							},
+							"id": 536,
+							"textures": [
+								null,
+								"masks/fix_iris_mask_13f08b0d"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 537,
+					"name": "Guelras",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 0.83999997,
+								"power": 2,
+								"ratio": 2.77,
+								"scale": 0.1,
+								"scrolldirection": 0,
+								"speeduv": 2.2,
+								"strength": 0.171
+							},
+							"id": 538,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_f6655407",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/blurradial/effect.json",
+					"id": 539,
+					"name": "Guelras (2)",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"center": "0.93310 0.41629",
+								"scale": 0.1
+							},
+							"id": 540,
+							"textures": [
+								null,
+								"masks/fix_blur_radial_gaussian_mask_4da4329b"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/iris/effect.json",
+					"id": 541,
+					"name": "Little Eyes",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"noiseamount": 0.0099999998,
+								"phase": 0.07,
+								"rough": 0.2,
+								"scale": "0.38 0.38",
+								"speed": 0.50999999
+							},
+							"id": 542,
+							"textures": [
+								null,
+								"masks/fix_iris_mask_71a51a31"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/edgedetection/effect.json",
+					"id": 543,
+					"name": "Ink edges",
+					"passes": [
+						{
+							"combos": {
+								"BLENDMODE": 3
+							},
+							"constantshadervalues": {
+								"alpha": 0.70999998,
+								"brightness": 1,
+								"detectmultiply": 5,
+								"detectthreshold": 0.83999997,
+								"outlinecolor": "0.7607843137254902 0.7607843137254902 0.7607843137254902",
+								"outlinecolorbg": "1 1 1",
+								"size": 0.41999999
+							},
+							"id": 544
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/twirl/effect.json",
+					"id": 545,
+					"name": "Nose twirl",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"amount": 1,
+								"angle": 0,
+								"center": "0.81326 0.36239",
+								"feather": 0.01117,
+								"phase": 0,
+								"ratio": 1,
+								"size": 0.012416435,
+								"speed": -1.15
+							},
+							"id": 546
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/waterwaves/effect.json",
+					"id": 547,
+					"name": "Tail edge shimmer",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"direction": 2.2614093,
+								"exponent": 1,
+								"scale": 200,
+								"speed": 5,
+								"strength": 0.02
+							},
+							"id": 548,
+							"textures": [
+								null,
+								"masks/fix_waterwaves_mask_c13e3058"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 551,
+					"name": "Balance (General)",
+					"passes": [
+						{
+							"combos": {
+								"DIRECTION": 1
+							},
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 3.1800001,
+								"strength": 0.036
+							},
+							"id": 552,
+							"textures": [
+								null,
+								"masks/fix_shake_mask_647b9b30"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 553,
+					"name": "Mini Eye #1",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": 0,
+								"center": "0.96217 0.14812",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 1,
+								"size": 0.0058834902,
+								"speed": 1
+							},
+							"id": 554
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/spin/effect.json",
+					"id": 555,
+					"name": "Mini Eye #2",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"angle": -0.5014165,
+								"center": "0.91460 0.25599",
+								"feather": 0.0020000001,
+								"phase": 0,
+								"ratio": 0.92496943,
+								"size": 0.0069296947,
+								"speed": 1
+							},
+							"id": 556
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 557,
+					"name": "Strings Hair",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 0.5,
+								"power": 1.37,
+								"ratio": 2.25,
+								"scale": 0.22,
+								"scrolldirection": 2.8540409,
+								"speeduv": 5,
+								"strength": 0.153
+							},
+							"id": 558,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_135029a1",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/foliagesway/effect.json",
+					"id": 559,
+					"name": "Strings Back",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"phase": 1.55,
+								"power": 1,
+								"ratio": 0.30000001,
+								"scale": 0.050000001,
+								"scrolldirection": 1.6494381,
+								"speeduv": 4.8000002,
+								"strength": 0.278
+							},
+							"id": 560,
+							"textures": [
+								null,
+								"masks/fix_foliagesway_mask_d3944eb2",
+								null
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/twirl/effect.json",
+					"id": 162,
+					"name": "Honeycomb",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"amount": 0.25,
+								"angle": 3.04,
+								"center": "0.93424 0.31672",
+								"feather": 0.01113,
+								"phase": 0.0,
+								"ratio": 0.31431997,
+								"size": 0.012365767,
+								"speed": 0.25
+							},
+							"id": 163
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 934,
+					"name": "Rig: Hair & Tendrils",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.3,
+								"strength": 0.098
+							},
+							"id": 935,
+							"textures": [
+								null,
+								"masks/rig3_appendages_flow",
+								"masks/rig3_appendages_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/tail_follow/effect.json",
+					"id": 936,
+					"name": "Rig: Tail",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"speed": 1.04,
+								"strength": 0.074,
+								"followstrength": 0.175,
+								"follow": {
+									"script": "'use strict';\n\n// Tail follows the mouse (horizontal axis). Bound to the \"follow\" value of the \"Rig: Tail\"\n// effect on every creature layer (installed by scripts/add_tail_follow.py). Every copy runs the\n// same math on the same input, so all layers stay in register.\n//\n// The target is the cursor's horizontal distance from the tail itself (read from layer K's live\n// position, so it follows the layout script and WE's flip): REACH of the canvas width either side\n// gives full deflection. An under-damped spring makes it snappy with a small overshoot; the output\n// is clamped to -1..1, which keeps the shader's strain guarantee.\n// User property `tailfollow` (0..100 %) scales it; 0 turns it off.\n\nconst TAIL_TX = 3680;      // tail tip, texture px (texture is 5040 wide)\nconst REACH = 0.3;         // fraction of the canvas width for full deflection\nconst OMEGA = 14;          // spring stiffness (rad/s)\nconst ZETA = 0.55;         // damping ratio (< 1: slight overshoot)\n\nlet amount = 1;\nlet pos = 0, vel = 0;\nlet kLayer = null, tried = -1;\n\nfunction clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }\n\nexport function applyUserProperties(changed) {\n\tif (changed.hasOwnProperty('tailfollow')) {\n\t\tamount = clamp(Number(changed.tailfollow) / 100, 0, 1);\n\t}\n}\n\nfunction tailWorldX(w) {\n\tif (!kLayer && engine.runtime > tried) {\n\t\ttried = engine.runtime + 1;\n\t\ttry { kLayer = thisScene.getLayer('K'); } catch (e) { kLayer = null; }\n\t}\n\tif (kLayer) {\n\t\treturn kLayer.origin.x + (TAIL_TX - 2520) * kLayer.scale.x;\n\t}\n\treturn w * 0.72;\n}\n\nexport function update(value) {\n\tconst w = engine.canvasSize.x;\n\tif (!(w > 0)) {\n\t\treturn value;\n\t}\n\tconst target = clamp((input.cursorWorldPosition.x - tailWorldX(w)) / (REACH * w), -1, 1) * amount;\n\tlet dt = Math.min(engine.frametime, 0.05);\n\twhile (dt > 0) {                                   // sub-step for a stable spring\n\t\tconst h = Math.min(dt, 1 / 120);\n\t\tconst acc = OMEGA * OMEGA * (target - pos) - 2 * ZETA * OMEGA * vel;\n\t\tvel += acc * h;\n\t\tpos += vel * h;\n\t\tdt -= h;\n\t}\n\treturn clamp(pos, -1, 1);\n}\n",
+									"value": 0.0
+								}
+							},
+							"id": 937,
+							"textures": [
+								null,
+								"masks/rig2_tail_flow",
+								"masks/rig2_tail_time",
+								"masks/arm_follow_flow16"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 938,
+					"name": "Rig: Head & Body",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.9,
+								"strength": 0.082
+							},
+							"id": 939,
+							"textures": [
+								null,
+								"masks/rig4_body_flow",
+								"masks/rig4_body_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 1270,
+					"name": "Rig: Belly",
+					"passes": [
+						{
+							"id": 1271,
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 0.75,
+								"strength": 0.067
+							},
+							"textures": [
+								null,
+								"masks/rig5_belly_flow",
+								"masks/rig5_belly_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/shake/effect.json",
+					"id": 983,
+					"name": "Rig: Face",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"bounds": "0 1",
+								"friction": "1 1",
+								"speed": 1.6,
+								"strength": 0.051
+							},
+							"id": 984,
+							"textures": [
+								null,
+								"masks/rig4_face_flow",
+								"masks/rig4_face_time"
+							]
+						}
+					],
+					"visible": true
+				},
+				{
+					"file": "effects/workshop/2811235087/lens_distortion/effect.json",
+					"id": 169,
+					"name": "",
+					"passes": [
+						{
+							"constantshadervalues": {
+								"Distorsion 1": 0.5,
+								"Distorsion 2": 0.0,
+								"center": "0.88288 0.55208",
+								"chromaticAberration": 1.0,
+								"general": 1.0,
+								"size": 0.4151639,
+								"ui_editor_properties_opacity": 1.0,
+								"zoom": 1.0
+							},
+							"id": 172
+						}
+					],
+					"visible": {
+						"script": "'use strict';\n\n/**\n * @param {Boolean} value - for property 'visible'\n * @return {Boolean} - update current property value\n */\nexport function update(value) {\n\tCursorEvent cursor = new\n\n\treturn value;\n}\n",
+						"value": true
+					}
+				},
+				{
+					"file": "effects/lens_fold_clip/effect.json",
+					"id": 1246,
+					"name": "Lens fold clip",
+					"passes": [
+						{
+							"id": 1247,
+							"constantshadervalues": {
+								"center": "0.88288 0.55208",
+								"scale": "0.71171 1.66066",
+								"fold": "0.55 0.62"
+							}
+						}
+					],
+					"visible": true
+				}
+			],
+			"id": 451,
+			"image": "models/Sem título-1_Prancheta 1.json",
+			"name": "K",
+			"origin": "2600.00000 1082.00000 0.00000",
+			"size": "5040.00000 2160.00000",
+			"visible": {
+				"script": "'use strict';\n\n// Layout controller for the Reptilian wallpaper.\n// Bound to the \"visible\" property of layer K; it positions every art layer as one rigid group so\n// the effects and painted masks (which live in each layer's UV space) stay aligned on any resolution.\n//\n// Rules:\n//  - the creature is 90% of the visible screen height, width follows its aspect ratio\n//  - it is pinned to the bottom-right corner (the artwork is cropped at its bottom and right edge,\n//    so those edges must touch the screen); Wallpaper Engine's own flip option mirrors it to the left\n//  - the kaleidoscope background stays centred and scales with the screen height\n// Scene coordinates are bottom-left origin, Y up.\n\nexport var scriptProperties = createScriptProperties()\n\t.addSlider({ name: 'heightPercent', label: 'Height (% of screen)', value: 90, min: 10, max: 100, integer: false })\n\t.finish();\n\n// Creature bounds in the authored scene coordinates (measured from layer K's alpha).\nconst ART = { right: 5120, bottom: 2, top: 2082 };\nconst AUTHORED_CANVAS = { x: 5120, y: 2160 };\n// Shadow: outer drop shadow under W (same UV space, same motion).\n// CB_*: full-frame cyan crops (bass blue, one bass band each) above M; same UV space as the rest.\nconst GROUP = ['Shadow', 'W', 'C', 'M', 'CB_Chest', 'CB_Tail4', 'CB_Tail3', 'CB_Tail2', 'CB_Tail1', 'C2', 'K'];\n// Centred layers: kaleidoscope + the spectrum mandala (one black layer; its effect draws the\n// pieces, glitch, datamosh and splash). Any authored offset from the canvas centre is kept, scaled.\nconst BACKGROUND = ['BG', 'MandalaK'];\n\nlet base = null;\n\nfunction capture() {\n\tbase = {};\n\tfor (const name of GROUP.concat(BACKGROUND)) {\n\t\tconst layer = thisScene.getLayer(name);\n\t\tif (layer) {\n\t\t\tbase[name] = { layer: layer, origin: layer.origin.copy(), scale: layer.scale.copy() };\n\t\t}\n\t}\n}\n\n// Wallpaper Engine fills the screen with the scene canvas (centred, cropping the overflow),\n// so work out which part of the canvas is actually visible.\nfunction visibleRect(screen) {\n\tlet cw = engine.canvasSize.x;\n\tlet ch = engine.canvasSize.y;\n\tif (!(cw > 0 && ch > 0)) {\n\t\tcw = AUTHORED_CANVAS.x;\n\t\tch = AUTHORED_CANVAS.y;\n\t}\n\tconst res = screen || engine.screenResolution;\n\tconst aspect = res && res.x > 0 && res.y > 0 ? res.x / res.y : cw / ch;\n\tif (aspect < cw / ch) {\n\t\tconst w = ch * aspect;\n\t\treturn { x: (cw - w) / 2, y: 0, w: w, h: ch };\n\t}\n\tconst h = cw / aspect;\n\treturn { x: 0, y: (ch - h) / 2, w: cw, h: h };\n}\n\nfunction layout(screen) {\n\tif (!base) {\n\t\treturn;\n\t}\n\tconst view = visibleRect(screen);\n\tconst s = (scriptProperties.heightPercent / 100) * view.h / (ART.top - ART.bottom);\n\n\tfor (const name of GROUP) {\n\t\tconst b = base[name];\n\t\tif (!b) {\n\t\t\tcontinue;\n\t\t}\n\t\tb.layer.origin = new Vec3(view.x + view.w + (b.origin.x - ART.right) * s, view.y + (b.origin.y - ART.bottom) * s, b.origin.z);\n\t\tb.layer.scale = new Vec3(b.scale.x * s, b.scale.y * s, b.scale.z);\n\t}\n\n\tconst k = view.h / AUTHORED_CANVAS.y;\n\tfor (const name of BACKGROUND) {\n\t\tconst bg = base[name];\n\t\tif (!bg) {\n\t\t\tcontinue;\n\t\t}\n\t\tconst ox = (bg.origin.x - AUTHORED_CANVAS.x / 2) * k;\n\t\tconst oy = (bg.origin.y - AUTHORED_CANVAS.y / 2) * k;\n\t\tbg.layer.origin = new Vec3(view.x + view.w / 2 + ox, view.y + view.h / 2 + oy, bg.origin.z);\n\t\tbg.layer.scale = new Vec3(bg.scale.x * k, bg.scale.y * k, bg.scale.z);\n\t}\n}\n\nexport function init(value) {\n\tcapture();\n\tlayout();\n\treturn value;\n}\n\nexport function resizeScreen(size) {\n\tlayout(size);\n}\n",
+				"scriptproperties": {
+					"heightPercent": 90
+				},
+				"value": true
+			}
+		}
+	],
+	"version": 4
+}
