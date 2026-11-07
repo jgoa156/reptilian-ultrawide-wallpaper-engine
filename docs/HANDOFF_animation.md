@@ -755,10 +755,29 @@ mandala sources and the rig PNGs, and `scripts/we_paths.py` finds the WE project
 cleanup but not exported.
 
 ## 15. Glitch / datamosh user properties (2026-11-07)
-`scripts/add_glitch_properties.py` adds four properties to project.json (idempotent, keeps current values):
+`scripts/add_mandala_properties.py` (was add_glitch_properties.py) adds four properties to project.json (idempotent, keeps current values):
 `mandalaglitch` (bool) + `mandalaglitchstrength` (0-300 %, shown only when on), `mandaladatamosh` (bool)
 + `mandaladatamoshstrength` (0-300 %). `scripts/mandala_controller.js` reads them in
 `applyUserProperties`: glitch strength multiplies the slice shove (`glitchshift`, on top of
 GLITCH_SCALE 0.1); datamosh strength multiplies the mosh opacity cap (MOSH_MAX 0.3, capped at 1, so
 333 % would be full). Off = no new triggers. The optimiser now injects `mandala_controller.js` into the
 MandalaK alpha script, so that file is the one to edit (the source project's copy is overwritten).
+
+## 16. Mandala spin follows the BPM (2026-11-07, verified in WE)
+`scripts/mandala_controller.js` detects the tempo live and drives the spin angle itself:
+- Onset envelope: positive flux of the log 16-band spectrum (bands 0-5 x2), sampled at a fixed 60 Hz
+  with a zero-order hold (a frame whose spectrum did not change keeps the last flux), so no
+  artificial zeros comb the envelope at 30 fps or when the audio refreshes slower than the frames.
+- Every 0.5 s: last 8 s, local-mean removed, autocorrelation over 70..160 BPM, each lag scored with its
+  2x/3x multiples and a log-Gaussian prior around 120 BPM, parabola for the fractional lag.
+- Hold logic: first lock needs two agreeing readings with confidence >= 0.3; readings related to the held
+  tempo by 2, 3/2, 4/3, 3 (and inverses) are ignored; a different tempo must win 4 checks in a row;
+  6 s with no confident beat (or no music) drops the tempo.
+- Spin: the script integrates `spinphase` (turns) and sets `spinscripted` 1; the shader falls back to
+  g_Time / turnperiod when the script never ran. Target speed = bpm / 60 / (13 x beats per piece), or
+  1 / spinperiod; it glides with a 1.5 s time constant, so nothing jumps.
+- Properties (`scripts/add_mandala_properties.py`): `mandalabpmspin` (bool, default off),
+  `mandalabeatsperpiece` (1-16, default 4). The script also reads `spinperiod` in applyUserProperties.
+- Offline test: `tools/bpm_test/` (spectra.py makes WE-like frames from a song with ffmpeg, run.mjs runs
+  the real controller in Node and fails if the spin jumps). On 6 songs it held within ~2% of the
+  whole-song reference after the first 15-30 s, at 60 fps, 30 fps and 30 Hz audio at 60/144 fps.

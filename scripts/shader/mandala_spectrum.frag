@@ -3,7 +3,9 @@
 // slices that the mandala had before.
 //
 //  * The 13-fold Choronzon mandala (g_Texture2) spins all the time: one full turn every
-//    g_TurnPeriod s (user property `spinperiod`, default 39), idle or with music.
+//    g_TurnPeriod s (user property `spinperiod`, default 39), idle or with music. The controller
+//    script drives the angle (g_SpinPhase) so the speed can follow the song's tempo
+//    (`mandalabpmspin`, `mandalabeatsperpiece`) and glide without a jump.
 //  * Idle (g_Slice = 0) it is the FULL mandala, breathing (g_Floor, from the controller).
 //    With music (g_Slice -> 1) it splits into 13 pieces, one per figure. Each piece fades out
 //    toward both sides (g_Feather) and darkens only with its own part of the spectrum
@@ -52,6 +54,10 @@ uniform float g_Bass; // {"material":"bass","label":"Bass level","default":0,"ra
 
 uniform vec2 g_UnitScale; // {"material":"unitscale","label":"Layer size in mandala radii","default":"3.41333 1.44"}
 uniform float g_TurnPeriod; // {"material":"turnperiod","label":"Spin: seconds per full turn","default":39,"range":[1,600]}
+// spin angle in turns, integrated by scripts/mandala_controller.js (it can follow the song's tempo
+// without jumping); until the script runs, the spin is g_Time / g_TurnPeriod
+uniform float g_SpinPhase; // {"material":"spinphase","label":"Spin phase (turns, set by script)","default":0,"range":[0,1]}
+uniform float g_SpinScripted; // {"material":"spinscripted","label":"Spin set by script (0/1)","default":0,"range":[0,1]}
 uniform float g_Feather; // {"material":"feather","label":"Piece side fade","default":0.35,"range":[0,1]}
 uniform float g_Floor; // {"material":"floor","label":"Piece level in silence","default":0.6,"range":[0,1]}
 uniform float g_Slice; // {"material":"slice","label":"Sliced (0 = full mandala, 1 = 13 pieces)","default":0,"range":[0,1]}
@@ -138,7 +144,7 @@ float glitchShift(float y)
 
 float render(vec2 uv)
 {
-	float angle = g_Time * M_PI_2 / max(g_TurnPeriod, 0.1);
+	float angle = mix(g_Time / max(g_TurnPeriod, 0.1), g_SpinPhase, step(0.5, g_SpinScripted)) * M_PI_2;
 	vec2 pos = (uv - CAST2(0.5)) * g_UnitScale;                      // screen-aligned, in mandala radii
 	if (g_GlitchSlices > 0.0)
 	{

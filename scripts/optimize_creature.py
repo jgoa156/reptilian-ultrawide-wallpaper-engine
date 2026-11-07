@@ -646,6 +646,8 @@ def optimize_mandala(scene):
     o["color"] = "0.00000 0.00000 0.00000"
     # the controller script lives in scripts/ (glitch/datamosh user properties were added there)
     o["alpha"]["script"] = (HERE / "scripts" / "mandala_controller.js").read_text(encoding="utf-8")
+    # spin angle set by that script (tempo-following spin); 0 = the shader's own g_Time spin
+    fx["passes"][0].setdefault("constantshadervalues", {}).update({"spinphase": 0.0, "spinscripted": 0.0})
     frag =(SHADER_SRC / "mandala_spectrum.frag").read_text(encoding="utf-8")
     out = (frag.replace("0.0).a * inside", "0.0).r * inside")
                .replace("lod).a * step(", "lod).r * step(")

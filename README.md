@@ -17,7 +17,9 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
   and tail light up one frequency band each, and an extra cyan layer reacts to the bass.
 - **Spectrum mandala** (the 13-fold Choronzon mandala behind the creature) turns slowly and
   breathes when there is no sound. With music it splits into 13 pieces, one per frequency band,
-  and adds a bass swell, datamosh frames and beat glitches.
+  and adds a bass swell, datamosh frames and beat glitches. Optionally its spin follows the song's
+  tempo: the script detects the BPM live (onset autocorrelation, 70–160 BPM) and turns the wheel
+  one piece every N beats.
 
 ## User properties
 | Property | Default |
@@ -29,6 +31,7 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
 | Mandala blur (px) | 0 |
 | Mandala beat glitch (on/off) + Glitch strength (%, 0–300) | on, 100 |
 | Mandala datamosh noise (on/off) + Datamosh strength (%, 0–300) | on, 100 |
+| Mandala spin follows BPM (on/off) + Beats per piece (1–16, 13 pieces per turn) | off, 4 |
 
 ## Install
 Copy `wallpaper/` into `steamapps/common/wallpaper_engine/projects/myprojects/<any name>/` and
@@ -89,7 +92,7 @@ The repo is a complete copy of the project: everything the current pipeline read
 change made in the WE editor on `wallpaper/` (layers, effects, particles) lasts only until the
 next run. For lasting changes, edit the source project (it opens in the WE editor too), then run
 the optimiser. `project.json` (user properties, title, preview) is not rebuilt; the glitch
-properties come from `scripts/add_glitch_properties.py`. The mandala's controller script is
+and BPM-spin properties come from `scripts/add_mandala_properties.py`. The mandala's controller script is
 `scripts/mandala_controller.js`, injected by the optimiser. `scene.pkg` is the package Wallpaper
 Engine writes when you publish; it is not kept in the repo.
 

@@ -1,9 +1,12 @@
-"""Add the mandala glitch / datamosh user properties to the live project.json (idempotent).
+"""Add the mandala's script-driven user properties to the live project.json (idempotent; keeps the
+values already set).
 
 scripts/mandala_controller.js reads them in applyUserProperties:
   mandalaglitch / mandalaglitchstrength       beat glitch (slice shove) on/off + strength %
   mandaladatamosh / mandaladatamoshstrength   datamosh noise frames on/off + strength % (opacity)
-Usage: python scripts/add_glitch_properties.py
+  mandalabpmspin / mandalabeatsperpiece       spin follows the detected tempo: one piece (of 13)
+                                              every N beats
+Usage: python scripts/add_mandala_properties.py
 """
 import json
 import sys
@@ -21,6 +24,10 @@ PROPS = {
     "mandaladatamoshstrength": {"index": 10, "order": 110, "text": "Datamosh strength (%)", "type": "slider",
                                 "min": 0, "max": 300, "step": 1, "precision": 0, "value": 100,
                                 "condition": "mandaladatamosh.value == true"},
+    "mandalabpmspin": {"index": 11, "order": 111, "text": "Mandala spin follows BPM", "type": "bool", "value": False},
+    "mandalabeatsperpiece": {"index": 12, "order": 112, "text": "Beats per piece (13 pieces per turn)",
+                             "type": "slider", "min": 1, "max": 16, "step": 1, "precision": 0, "value": 4,
+                             "condition": "mandalabpmspin.value == true"},
 }
 
 path = PROJ / "project.json"

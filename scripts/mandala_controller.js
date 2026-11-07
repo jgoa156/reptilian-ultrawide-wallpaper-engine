@@ -17,6 +17,10 @@
 //    the whole song) 3..7 horizontal slices shear sideways for 90..300 ms. Harder hits tear more
 //    slices and shove them further. It only moves pixels, so it keeps the pieces' darkness: in
 //    a song, only the pieces whose band is sounding get blacker.
+//  * Spin: this script integrates the angle (`spinphase`) so the speed can change without a jump.
+//    It is 1 / `spinperiod` turns per second, or, with `mandalabpmspin` on and a tempo detected,
+//    one piece every `mandalabeatsperpiece` beats (13 pieces per turn). The speed glides
+//    (~1.5 s); after 6 s without a beat it glides back to `spinperiod`.
 //
 // Opacity: the shader's min/max opacity, bound straight to the user properties
 // `mandalaminopacity` / `mandalamaxopacity` (blur: `mandalablur`). This script no longer touches
@@ -63,17 +67,144 @@ let glitchLv = 0, glitchSlices = 0;
 const GLITCH_SCALE = 0.1;           // user: "WAY WAY more subtle" -> a tenth of Leonard's shove
 const MOSH_MAX = 0.3;               // datamosh opacity cap (was 1)
 
-// user properties (project.json): beat glitch and datamosh noise, each on/off + strength in %
+// user properties (project.json): beat glitch and datamosh noise, each on/off + strength in %;
+// spin period, and the spin following the song's tempo (beats per piece, 13 pieces per turn)
 let uGlitchOn = true, uGlitchAmt = 1, uMoshOn = true, uMoshAmt = 1;
+let uPeriod = 39, uBpmSpin = false, uBeatsPerPiece = 4;
 
 export function applyUserProperties(changed) {
 	if (changed.mandalaglitch !== undefined) uGlitchOn = !!changed.mandalaglitch;
 	if (changed.mandalaglitchstrength !== undefined) uGlitchAmt = changed.mandalaglitchstrength / 100;
 	if (changed.mandaladatamosh !== undefined) uMoshOn = !!changed.mandaladatamosh;
 	if (changed.mandaladatamoshstrength !== undefined) uMoshAmt = changed.mandaladatamoshstrength / 100;
+	if (changed.spinperiod !== undefined) uPeriod = Math.max(changed.spinperiod, 0.1);
+	if (changed.mandalabpmspin !== undefined) uBpmSpin = !!changed.mandalabpmspin;
+	if (changed.mandalabeatsperpiece !== undefined) uBeatsPerPiece = Math.max(changed.mandalabeatsperpiece, 1);
 }
 
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+// ---- tempo (BPM) detection
+// Onset envelope: positive spectral flux of the log spectrum (bass bands weighted double), sampled
+// at a fixed 60 Hz whatever the frame rate. Every 0.5 s the last 8 s are autocorrelated over the
+// lags of 70..180 BPM, each lag scored with its 2x and 3x multiples (a beat repeats), weighted
+// toward ~120 BPM (the usual half/double-time ambiguity), refined to a fractional lag by a parabola.
+// The reading only replaces the held tempo when it is confident; octave jumps (x2, x0.5) of the
+// held tempo are ignored, a real tempo change has to win 4 checks in a row.
+const BPM_HOP = 1 / 60, BPM_WIN = 480, BPM_MIN = 70, BPM_MAX = 160;
+const BPM_LMIN = Math.ceil(60 / (BPM_MAX * BPM_HOP)), BPM_LMAX = Math.ceil(60 / (BPM_MIN * BPM_HOP));
+const bpmEnv = new Float32Array(BPM_WIN), bpmWork = new Float32Array(BPM_WIN);
+const bpmPrev = new Float32Array(16);
+let bpmPos = 0, bpmCount = 0, bpmAcc = 0, bpmHold = 0, bpmCheck = 0;
+let bpm = 0, bpmConf = 0, bpmCand = 0, bpmCandN = 0, bpmLost = 0;
+
+function near(a, b, tol) { return Math.abs(a / b - 1) < tol; }
+
+let bpmFlux = 0;
+
+function bpmFeed(spec, dt) {
+	// the audio buffers can refresh slower than the frame rate: a frame with the same spectrum
+	// keeps the last flux (zero-order hold), and every 60 Hz sample a frame spans gets its value,
+	// so no artificial zeros comb the envelope at any frame rate
+	let flux = 0, changed = false;
+	for (let i = 0; i < 16; i++) {
+		const v = Math.log(1 + 100 * spec[i]);
+		const d = v - bpmPrev[i];
+		if (d !== 0) changed = true;
+		if (d > 0) flux += i < 6 ? 2 * d : d;
+		bpmPrev[i] = v;
+	}
+	if (changed) bpmFlux = flux;
+	bpmHold = Math.max(bpmHold, bpmFlux);
+	bpmAcc += dt;
+	let pushed = false;
+	for (let n = 0; bpmAcc >= BPM_HOP && n < 30; n++) {
+		bpmAcc -= BPM_HOP;
+		bpmEnv[bpmPos] = bpmHold;
+		bpmPos = (bpmPos + 1) % BPM_WIN;
+		if (bpmCount < BPM_WIN) bpmCount++;
+		pushed = true;
+	}
+	if (pushed) bpmHold = 0;
+	if (bpmAcc > BPM_HOP) bpmAcc = 0;                    // long stall: drop the backlog
+}
+
+// one tempo reading from the envelope: [bpm, confidence 0..1]
+function bpmRead() {
+	const N = bpmCount, start = (bpmPos - N + BPM_WIN) % BPM_WIN;
+	for (let i = 0; i < N; i++) bpmWork[i] = bpmEnv[(start + i) % BPM_WIN];
+	// remove the local mean (0.25 s) and keep the rises: an onset train, not the loudness
+	const H = 7, pre = new Float32Array(N + 1), tmp = new Float32Array(N);
+	for (let i = 0; i < N; i++) pre[i + 1] = pre[i] + bpmWork[i];
+	for (let c = 0; c < N; c++) {
+		const lo = Math.max(0, c - H), hi = Math.min(N, c + H + 1);
+		tmp[c] = Math.max(0, bpmWork[c] - (pre[hi] - pre[lo]) / (hi - lo));
+	}
+	let r0 = 0;
+	for (let i = 0; i < N; i++) r0 += tmp[i] * tmp[i];
+	if (r0 <= 1e-9) return [0, 0];
+	const acf = (L) => {
+		let s = 0;
+		for (let i = L; i < N; i++) s += tmp[i] * tmp[i - L];
+		return s / (N - L);
+	};
+	const r = new Float32Array(3 * BPM_LMAX + 1);
+	for (let L = BPM_LMIN - 1; L <= Math.min(3 * BPM_LMAX, N - 1); L++) r[L] = acf(L);
+	let best = BPM_LMIN, bestS = -1e9;
+	for (let L = BPM_LMIN; L <= BPM_LMAX; L++) {
+		const oct = Math.log2(60 / (L * BPM_HOP) / 120) / 0.9;
+		const s = (r[L] + 0.5 * r[2 * L] + 0.33 * r[3 * L]) * Math.exp(-0.5 * oct * oct);
+		if (s > bestS) { bestS = s; best = L; }
+	}
+	// fractional lag from the raw autocorrelation around the peak
+	const a = r[best - 1], b0 = r[best], c = r[best + 1];
+	const den = a - 2 * b0 + c;
+	const off = den < 0 ? clamp(0.5 * (a - c) / den, -0.5, 0.5) : 0;
+	return [60 / ((best + off) * BPM_HOP), clamp(b0 * N / r0, 0, 1)];
+}
+
+function bpmUpdate(dt, playing) {
+	bpmCheck += dt;
+	if (bpmCheck < 0.5) return;
+	bpmCheck = 0;
+	const [cand, conf] = bpmCount >= 240 && playing ? bpmRead() : [0, 0];
+	bpmConf = conf;
+	if (!(cand > 0) || conf < 0.12) {
+		bpmLost += 0.5;
+		if (bpmLost > 6) bpm = 0;                             // 6 s with no beat: let the spin go back
+		return;
+	}
+	bpmLost = 0;
+	const agree = bpmCandN > 0 && near(cand, bpmCand, 0.04);
+	if (!(bpm > 0)) {                                     // first lock: two confident readings that agree
+		if (conf < 0.3) { bpmCandN = 0; return; }
+		if (agree) { bpm = (cand + bpmCand) / 2; bpmCandN = 0; } else { bpmCand = cand; bpmCandN = 1; }
+		return;
+	}
+	if (near(cand, bpm, 0.04)) { bpm += (cand - bpm) * 0.25; bpmCandN = 0; return; }
+	for (const k of RELATED) {                            // the same beat felt at another level: keep
+		if (near(cand, bpm * k, 0.04)) return;
+	}
+	if (agree) bpmCandN++;
+	else { bpmCand = cand; bpmCandN = 1; }
+	if (bpmCandN >= 4) { bpm = cand; bpmCandN = 0; }
+}
+const RELATED = [2, 1 / 2, 3 / 2, 2 / 3, 4 / 3, 3 / 4, 3, 1 / 3];
+
+// ---- spin: the script integrates the angle so a change of speed never jumps the wheel
+let spinPhase = -1, spinSpeed = 0;
+
+function spinUpdate(dt) {
+	const target = uBpmSpin && bpm > 0 ? bpm / 60 / (13 * uBeatsPerPiece) : 1 / uPeriod;   // turns per second
+	if (spinPhase < 0) {                                  // take over from the shader's g_Time spin
+		spinPhase = (engine.runtime / uPeriod) % 1;
+		spinSpeed = 1 / uPeriod;
+	}
+	spinSpeed += (target - spinSpeed) * (1 - Math.exp(-dt / 1.5));
+	spinPhase = (spinPhase + spinSpeed * dt) % 1;
+	set('spinphase', spinPhase);
+	set('spinscripted', 1);
+}
 
 function set(name, v) {
 	try { fx.setMaterialProperty(name, v); } catch (e) { /* older WE: leave the shader defaults */ }
@@ -102,6 +233,11 @@ export function update(value) {
 	all /= 16;
 	for (let i = 0; i < 4; i++) bass += audio.average[i];
 	bass /= 4;
+
+	// ---- tempo + spin
+	bpmFeed(audio.average, dt);
+	bpmUpdate(dt, presence > 0.5);
+	spinUpdate(dt);
 
 	// ---- Leonard glitch: onsets of the whole song (leonard.c audio_poll), black layer only
 	let l = 0, r = 0;
