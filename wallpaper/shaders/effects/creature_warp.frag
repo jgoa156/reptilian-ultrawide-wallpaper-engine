@@ -45,7 +45,7 @@ varying vec4 v_Misc2;        // x = blink pulse 5
 
 uniform sampler2D g_Texture0; // {"hidden":true}
 uniform sampler2D g_Texture1; // {"label":"Pack A: hair flow, hair time, tail time","mode":"flowmask","default":"util/noflow"}
-uniform sampler2D g_Texture2; // {"label":"Pack B: tail sway flow, tail follow flow","mode":"flowmask","default":"util/noflow"}
+uniform sampler2D g_Texture2; // {"label":"Pack B: tail sway flow, arm follow flow (16-bit x)","mode":"flowmask","default":"util/noflow"}
 uniform sampler2D g_Texture3; // {"label":"Pack C: head-body flow, head-body time, belly time","mode":"flowmask","default":"util/noflow"}
 uniform sampler2D g_Texture4; // {"label":"Pack D: belly flow, balance flow","mode":"flowmask","default":"util/noflow"}
 uniform sampler2D g_Texture5; // {"label":"Pack face: face flow, face time","mode":"flowmask","default":"util/noflow"}
@@ -79,7 +79,7 @@ uniform float g_AlphaMax; // {"material":"alphamax","label":"Alpha cap of the in
 #define FACE_AMP2 0.002601
 #define TAIL_SPEED 1.04
 #define TAIL_AMP2 0.005476
-#define TAIL_FOLLOW_AMP2 0.011664
+#define TAIL_FOLLOW_AMP2 0.030625
 #define S1_CENTER vec2(0.83175, 0.42204)
 #define S1_AXIS vec2(0.68172277, 0.7316106)
 #define S1_RATIO 0.7697919
@@ -180,7 +180,7 @@ uniform float g_AlphaMax; // {"material":"alphamax","label":"Alpha cap of the in
 #define FOLD_FROM 0.55
 #define FOLD_TO 0.62
 #define BOX_HAIR vec4(0.74767442, -0.0027777778, 1.0011628, 0.7375)
-#define BOX_TAIL vec4(-0.0011627907, -0.0027777778, 0.91802326, 1.0027778)
+#define BOX_TAIL vec4(-0.0011627907, -0.0027777778, 1.0011628, 1.0027778)
 #define BOX_HB vec4(-0.0011627907, -0.0027777778, 1.0011628, 1.0027778)
 #define BOX_BELLY vec4(0.78662791, 0.23055556, 1.0011628, 1.0027778)
 #define BOX_FACE vec4(0.77222222, 0.17222222, 0.91706349, 0.6712963)
@@ -193,6 +193,7 @@ uniform float g_AlphaMax; // {"material":"alphamax","label":"Alpha cap of the in
 #define BOX_WW vec4(0.73546512, 0.5125, 0.75174419, 0.65972222)
 #define BOX_BLUR vec4(0.90523256, 0.33055556, 0.96162791, 0.53888889)
 #define BOX_BLINK vec4(0.81802326, 0.29583333, 0.83662791, 0.39444444)
+#define BOX_FACE_RECT vec4(0.77142857, 0.17037037, 0.14761905, 0.5037037)
 
 #if LAYOUT == 0
 #define R_HAIR 1
@@ -316,7 +317,9 @@ vec2 opTail(vec2 p)
 		vec4 b = texSample2D(g_Texture2, p);
 		float sway = sin(TAIL_SPEED * g_Time + phase) * 0.996;
 		float f = clamp(g_Follow, -1.0, 1.0);
-		p += sway * (1.0 - abs(f)) * TAIL_AMP2 * flowOf(b.rg) - f * TAIL_FOLLOW_AMP2 * flowOf(b.ba);
+		// follow field: x only, 16 bits over b (hi) and a (lo); linear filtering commutes with this
+		float fx = (dot(b.ba, vec2(65280.0, 255.0)) - 32640.0) / 32640.0;
+		p += sway * (1.0 - abs(f)) * TAIL_AMP2 * flowOf(b.rg) - f * TAIL_FOLLOW_AMP2 * vec2(fx, 0.0);
 	}
 #endif
 	return p;
@@ -352,7 +355,7 @@ vec2 opFace(vec2 p)
 #if R_FACE
 	if (inBox(p, BOX_FACE))
 	{
-		vec4 f = texSample2D(g_Texture5, p);
+		vec4 f = texSample2D(g_Texture5, (p - BOX_FACE_RECT.xy) / BOX_FACE_RECT.zw);   // cropped pack
 		p += rigWave(FACE_SPEED, f.b) * FACE_AMP2 * flowOf(f.rg);
 	}
 #endif

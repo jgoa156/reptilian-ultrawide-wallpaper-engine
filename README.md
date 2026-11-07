@@ -10,7 +10,9 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
 - **The creature**: hair, tendrils, tail, head, body, belly and face are driven by painted motion
   rigs (flow + time maps). The eyes spin and wander, the gills sway, the eyelids blink, and a
   lens + chromatic aberration pass sits on top.
-- **The tail follows the mouse** horizontally, on a slightly springy curve.
+- **The arm follows the mouse**: the whole spike next to the head, from the coil it grows out of
+  to the tip, leans toward the cursor (up to 150 px at the tip on the 5040-wide art) on a slightly
+  springy curve.
 - **Music**: the magenta and cyan ink layers pulse with the audio. Five blue bands across the chest
   and tail light up one frequency band each, and an extra cyan layer reacts to the bass.
 - **Spectrum mandala** (the 13-fold Choronzon mandala behind the creature) turns slowly and
@@ -34,14 +36,16 @@ pick it in Wallpaper Engine (or open its `project.json` from the editor).
 Each creature layer renders in one generated shader pass ("Creature warp") that reproduces the
 whole chain of built-in effects it replaced. The chain is walked backwards as a composition of
 coordinate maps, followed by a single texture read. The layers are also cropped to the area the
-creature can reach.
+creature can reach. Textures are GPU-compressed (DXT5) where that is visually lossless: every
+creature layer is one flat colour plus alpha, so only the alpha is approximated, and only on
+anti-aliased edge pixels.
 
 | | Before | After |
 |---|---|---|
 | Effect passes (creature) | 142 | 21 |
-| GPU 3D load, wallpaper visible (2560×1080, RTX 3080 Ti) | ~34 % | ~4 % silent, 18–25 % with music |
-| VRAM (Wallpaper Engine process) | 1196 MB | 633 MB |
-| Project size | 73 MB | 19 MB |
+| GPU 3D load, wallpaper visible (2560×1080, RTX 3080 Ti) | ~34 % | ~4 % silent, ~10–25 % with music |
+| VRAM (Wallpaper Engine process) | 1196 MB | ~570 MB |
+| Project size | 73 MB | 23 MB |
 
 Details: [`docs/HANDOFF_animation.md`](docs/HANDOFF_animation.md) §13 and the header of
 [`scripts/shader/creature_warp.frag.in`](scripts/shader/creature_warp.frag.in).

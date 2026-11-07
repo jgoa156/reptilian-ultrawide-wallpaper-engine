@@ -45,7 +45,7 @@ varying vec4 v_Misc2;        // x = blink pulse 5
 
 uniform sampler2D g_Texture0; // {"hidden":true}
 uniform sampler2D g_Texture1; // {"label":"Pack A: hair flow, hair time, tail time","mode":"flowmask","default":"util/noflow"}
-uniform sampler2D g_Texture2; // {"label":"Pack B: tail sway flow, tail follow flow","mode":"flowmask","default":"util/noflow"}
+uniform sampler2D g_Texture2; // {"label":"Pack B: tail sway flow, arm follow flow (16-bit x)","mode":"flowmask","default":"util/noflow"}
 uniform sampler2D g_Texture3; // {"label":"Pack C: head-body flow, head-body time, belly time","mode":"flowmask","default":"util/noflow"}
 uniform sampler2D g_Texture4; // {"label":"Pack D: belly flow, balance flow","mode":"flowmask","default":"util/noflow"}
 uniform sampler2D g_Texture5; // {"label":"Pack face: face flow, face time","mode":"flowmask","default":"util/noflow"}
@@ -192,7 +192,9 @@ vec2 opTail(vec2 p)
 		vec4 b = texSample2D(g_Texture2, p);
 		float sway = sin(TAIL_SPEED * g_Time + phase) * 0.996;
 		float f = clamp(g_Follow, -1.0, 1.0);
-		p += sway * (1.0 - abs(f)) * TAIL_AMP2 * flowOf(b.rg) - f * TAIL_FOLLOW_AMP2 * flowOf(b.ba);
+		// follow field: x only, 16 bits over b (hi) and a (lo); linear filtering commutes with this
+		float fx = (dot(b.ba, vec2(65280.0, 255.0)) - 32640.0) / 32640.0;
+		p += sway * (1.0 - abs(f)) * TAIL_AMP2 * flowOf(b.rg) - f * TAIL_FOLLOW_AMP2 * vec2(fx, 0.0);
 	}
 #endif
 	return p;
@@ -228,7 +230,7 @@ vec2 opFace(vec2 p)
 #if R_FACE
 	if (inBox(p, BOX_FACE))
 	{
-		vec4 f = texSample2D(g_Texture5, p);
+		vec4 f = texSample2D(g_Texture5, (p - BOX_FACE_RECT.xy) / BOX_FACE_RECT.zw);   // cropped pack
 		p += rigWave(FACE_SPEED, f.b) * FACE_AMP2 * flowOf(f.rg);
 	}
 #endif

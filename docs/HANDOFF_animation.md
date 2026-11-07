@@ -714,6 +714,36 @@ first**, or the next run loses it. Order if something upstream changes: the old 
 - The temporary verify projects were deleted. WE keeps folder handles on projects it has scanned,
   so a new verify project needs a fresh `--suffix`, or must be deleted after switching away from it.
 
+### 13b. Texture compression (WE's "compress these textures" tips, all cleared)
+- Every creature layer texture is one flat colour + alpha, so `write_layer_texture` stores it as
+  **DXT5** (`tools/tex_io.py`: own encoder; colour block exact, alpha per 4x4 block with the better
+  of BC3's two modes + a local endpoint search; ~98 % of pixels exact, the rest anti-aliased edge
+  pixels within ~12/255 at p99.9). 3 mip levels; crop edges now snap to 16 px so mips stay
+  block-aligned. Textures: ~149 MB -> 37 MB VRAM.
+- **Face pack** cropped to the face box (`BOX_FACE_RECT`, shader samples through it): 2520x1080 ->
+  372x544, lossless (it is only read inside BOX_FACE).
+- **BG kaleidoscope**: general DXT5 (per-block principal-axis colour fit), padded 1500 -> 1504,
+  4 levels. Drawn at <= 6.6 % opacity, so on-screen error <= 1.4 levels.
+- TinyPNG-style PNG shrinking would not help: WE decodes PNG to RGBA8 in VRAM.
+- VRAM now ~570 MB with music (was 1196 MB before all of §13).
+
+## 14. Arm follows the mouse, v2 (2026-11-07): `tools/arm_follow_field.py`
+- User: the "arm" (the spike next to the head) should reach much further, rigging the entire arm
+  including the coil it grows from; ~3x the old reach.
+- Bend weight = t^1.4, t = geodesic distance along the arm (spike + coil, rig2's tail region) from
+  where the coil joins the body (0) to the tip (1). Carried to the surrounding empty space by
+  nearest arm pixel + 40 px blur; a territory weight takes it to 0 across the gap to the head
+  (20 px margins around both). Displacement is horizontal only.
+- **150 px at the tip** (was 52), ink strain 0.164 (limit 0.25), max |d(dx)/dx| 0.566 in the
+  transparent gap (fold at 1), head/body exactly still. Up to ~220 px would still be clean.
+- Stored as **16 bits** over pack B's b/a (hi/lo; zero = 127/128, decode `(q - 32640) / 32640`):
+  8 bits would step 1.2 px. Linear filtering commutes with the decode. `followstrength` 0.175.
+- The tool writes `masks/arm_follow_flow16` and the new followstrength into the optimiser's source
+  copy (`backups/2026-11-07_before_optimize/project`), then run `optimize_creature.py`. The old
+  `tools/tail_follow_field.py` / `scripts/add_tail_follow.py` (8-bit) are superseded.
+- Preview: `rig/v6/arm_follow_preview.png` (still / full lean each way); max warp is now 438 px,
+  so the layer crops grew a little.
+
 ### Repo
 Public: https://github.com/jgoa156/reptilian-ultrawide-wallpaper-engine, local clone
 `E:\Dev\reptilian-ultrawide-wallpaper-engine`. `python tools/export_repo.py` refreshes it (wallpaper/,

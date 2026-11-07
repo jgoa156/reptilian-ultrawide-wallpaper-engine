@@ -1,6 +1,6 @@
 {
 	"bleedtransparentcolors": true,
 	"clampuvs": true,
-	"format": "rgba8888",
+	"format": "dxt5",
 	"nonpoweroftwo": true
 }

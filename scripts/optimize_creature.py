@@ -20,6 +20,7 @@ What it does
         K -> KPRE, WE's Ink edges (kept), KPOST
      (M's motion blur had rate 1, so it only round-tripped the image through an 8-bit buffer; it is
      dropped and that buffer's alpha cap is kept with "alphamax")
+  4b. the cropped layer textures (one flat colour + alpha each) are written as DXT5 with 3 mips
   5b. MandalaK: the mandala texture as R8 (+ mips), WE's solid layer instead of the empty canvas
   6. deletes project files nothing references any more (all are in the backup copy)
 
@@ -39,7 +40,7 @@ HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE / "scripts"))
 sys.path.insert(0, str(HERE / "tools"))
 from add_mandalas import PROJ, write_tex  # noqa: E402
-from tex_io import read_tex, read_tex_levels, write_raw_tex  # noqa: E402
+from tex_io import read_tex, read_tex_levels, write_dxt5_rgba_tex, write_dxt5_tex, write_raw_tex  # noqa: E402
 
 SRC = HERE / "backups" / "2026-11-07_before_optimize" / "project"
 WORK = HERE / "optimized"
@@ -255,6 +256,12 @@ def flow_nonzero(rg):
     return np.any(np.abs(rg.astype(np.int16) - 127) > 0, axis=-1)
 
 
+def follow16(hl):
+    """The arm follow field (tools/arm_follow_field.py): x flow in 16 bits, hi/lo bytes."""
+    q = hl[..., 0].astype(np.int32) * 256 + hl[..., 1]
+    return (q - 32640) / 32640.0
+
+
 def build_packs(V):
     def tex_of(effect, i):
         return V[effect]["textures"][i]
@@ -290,11 +297,20 @@ def build_packs(V):
         "cw_masks_2": pack(f2, f3, blinks[4], blur),
         "cw_blinks": pack(*blinks[:4]),
     }
+    # the face pack is only read inside BOX_FACE (2 texels of padding around the face flow): crop it
+    # to that box + 4 texels and sample it through BOX_FACE_RECT (x, y, w, h in full uv). Lossless.
+    fh, fw = fa_f.shape[:2]
+    ys, xs = np.nonzero(flow_nonzero(fa_f))
+    fx0, fy0 = max(0, (xs.min() - 4) // 4 * 4), max(0, (ys.min() - 4) // 4 * 4)
+    fx1, fy1 = min(fw, -(-(xs.max() + 5) // 4) * 4), min(fh, -(-(ys.max() + 5) // 4) * 4)
+    packs["cw_pack_face"] = packs["cw_pack_face"][fy0:fy1, fx0:fx1]
+    face_rect = (fx0 / fw, fy0 / fh, (fx1 - fx0) / fw, (fy1 - fy0) / fh)
+    print(f"  face pack cropped to {fx1 - fx0}x{fy1 - fy0} of {fw}x{fh}")
     for name, a in packs.items():
         write_raw_tex(PROJ / "materials" / "masks" / f"{name}.tex", a)
     boxes = {
         "HAIR": bbox_uv(flow_nonzero(hair_f)),
-        "TAIL": bbox_uv(flow_nonzero(tail_f) | flow_nonzero(foll)),
+        "TAIL": bbox_uv(flow_nonzero(tail_f) | (follow16(foll) != 0)),
         "HB": bbox_uv(flow_nonzero(hb_f)),
         "BELLY": bbox_uv(flow_nonzero(be_f)),
         "FACE": bbox_uv(flow_nonzero(fa_f)),
@@ -303,9 +319,10 @@ def build_packs(V):
         "F1": bbox_uv(f1[..., 0] > 0), "F2": bbox_uv(f2[..., 0] > 0), "F3": bbox_uv(f3[..., 0] > 0),
         "WW": bbox_uv(ww[..., 0] > 0), "BLUR": bbox_uv(blur[..., 0] > 0),
         "BLINK": bbox_uv(np.any(np.dstack([b[..., 0] for b in blinks]) > 0, axis=-1)),
+        "FACE_RECT": face_rect,
     }
     fmax = lambda rg: float(np.abs((rg.astype(np.float32) / 255 - 0.498) * 2).max())   # noqa: E731
-    return packs, boxes, {"hair": fmax(hair_f), "tail": fmax(tail_f), "follow": fmax(foll),
+    return packs, boxes, {"hair": fmax(hair_f), "tail": fmax(tail_f), "follow": float(np.abs(follow16(foll)).max()),
                           "hb": fmax(hb_f), "belly": fmax(be_f), "face": fmax(fa_f), "bal": fmax(bal)}
 
 
@@ -408,8 +425,9 @@ def crops_and_supports(scene, lens, reach_px, circles):
         if len(xs):
             r = [min(r[0], xs.min() * S), min(r[1], ys.min() * S),
                  max(r[2], (xs.max() + 1) * S), max(r[3], (ys.max() + 1) * S)]
-        r = [int(max(0, r[0] - 8) // 8 * 8), int(max(0, r[1] - 8) // 8 * 8),
-             int(min(TW, -(-(r[2] + 8) // 8) * 8)), int(min(TH, -(-(r[3] + 8) // 8) * 8))]
+        # 8 px margin, edges on a 16 px grid: DXT5 blocks are 4x4, so mips 0-2 stay block-aligned
+        r = [int(max(0, r[0] - 8) // 16 * 16), int(max(0, r[1] - 8) // 16 * 16),
+             int(min(TW, -(-(r[2] + 8) // 16) * 16)), int(min(TH, -(-(r[3] + 8) // 16) * 16))]
         rects[tex] = r
     return tex_alpha, supports, rects, ca_px
 
@@ -461,8 +479,8 @@ def main():
         a = tex_alpha[tex][r[1]:r[3], r[0]:r[2]]
         png = WORK / f"{tex}.png"
         Image.fromarray(a, "RGBA").save(png, optimize=True)
-        write_tex(PROJ / "materials" / f"{tex}.tex", png)
-        print(f"  {tex:28} crop {r}  {(r[2]-r[0])*(r[3]-r[1]) / (TW*TH) * 100:5.1f}% of the layer")
+        fmt = write_layer_texture(tex, a, png)
+        print(f"  {tex:28} crop {r}  {(r[2]-r[0])*(r[3]-r[1]) / (TW*TH) * 100:5.1f}% of the layer, {fmt}")
 
     consts = constants(V, boxes, lens)
     install_effect(consts)
@@ -544,9 +562,68 @@ def main():
         o["size"] = f"{r[2] - r[0]:.5f} {r[3] - r[1]:.5f}"
 
     optimize_mandala(scene)
+    optimize_background()
     (PROJ / "scene.json").write_text(json.dumps(scene, indent="\t", ensure_ascii=False), encoding="utf-8")
     print("passes per layer:", {n: len(by_name[n]["effects"]) for n in CREATURE})
     cleanup(scene)
+
+
+# ---------------------------------------------------------------- 4b. layer texture format
+
+def write_layer_texture(tex, rgba, png):
+    """Every creature layer is one flat colour plus alpha. Such a layer is stored as DXT5: the
+    colour block hits the colour exactly (565 permitting), the alpha is BC3-encoded per 4x4 block
+    (~98 % of pixels exact, the rest are anti-aliased edge pixels within a few levels). 1 byte per
+    pixel in VRAM instead of 4. Mips: halved alpha (Lanczos, like the PNG imports), as many levels
+    as stay multiples of 4. A layer with more than one visible colour keeps the PNG import."""
+    vis = rgba[..., 3] > 0
+    cols = np.unique(rgba[..., :3][vis].reshape(-1, 3), axis=0)
+    meta = PROJ / "materials" / f"{tex}.tex-json"
+    if len(cols) != 1 or rgba.shape[0] % 4 or rgba.shape[1] % 4:
+        write_tex(PROJ / "materials" / f"{tex}.tex", png)
+        fmt = "rgba8888"
+    else:
+        alpha = rgba[..., 3]
+        mips, cur = [], Image.fromarray(alpha, "L")
+        while len(mips) < 4 and cur.width % 8 == 0 and cur.height % 8 == 0:
+            cur = cur.resize((cur.width // 2, cur.height // 2), Image.LANCZOS)
+            mips.append(np.asarray(cur))
+        write_dxt5_tex(PROJ / "materials" / f"{tex}.tex", [int(v) for v in cols[0]], alpha, mips)
+        fmt = f"dxt5 + {len(mips)} mips"
+    m = json.loads(meta.read_text(encoding="utf-8")) if meta.exists() else {
+        "bleedtransparentcolors": True, "clampuvs": True, "nonpoweroftwo": True}
+    m["format"] = fmt.split()[0]
+    meta.write_text(json.dumps(m, indent="\t"), encoding="utf-8")
+    return fmt
+
+
+# ---------------------------------------------------------------- 5c. background layer
+
+BG_TEX = "kaleidoscope10_15_24120703AM"
+
+
+def optimize_background():
+    """BG (the kaleidoscope) is drawn at layer alpha 0.1 and its own alpha peaks at 169, so it is
+    never more than 6.6 % opaque: DXT5's colour error (a few levels) is far below one screen level
+    there. Stored as general DXT5 (1/4 of the VRAM), padded 1500 -> 1504 by edge replication
+    (image size stays 1500, like WE's own padded import), 4 mip levels."""
+    rgba = read_tex(SRC / "materials" / f"{BG_TEX}.tex")
+    h, w = rgba.shape[:2]
+    pw, ph = -(-w // 16) * 16, -(-h // 16) * 16
+    pad = np.pad(rgba, ((0, ph - h), (0, pw - w), (0, 0)), mode="edge")
+    levels, cur = [pad], Image.fromarray(pad, "RGBA")
+    while len(levels) < 4 and cur.width % 8 == 0 and cur.height % 8 == 0:
+        cur = cur.resize((cur.width // 2, cur.height // 2), Image.LANCZOS)
+        levels.append(np.asarray(cur))
+    write_dxt5_rgba_tex(PROJ / "materials" / f"{BG_TEX}.tex", levels, (w, h))
+    back = read_tex(PROJ / "materials" / f"{BG_TEX}.tex").astype(int)
+    vis = back[..., 3:4] / 255 * 0.1
+    err = np.abs(back[..., :3] * vis - rgba[..., :3].astype(int) * (rgba[..., 3:4] / 255 * 0.1))
+    meta = PROJ / "materials" / f"{BG_TEX}.tex-json"
+    m = json.loads(meta.read_text(encoding="utf-8")) if meta.exists() else {"clampuvs": True, "nonpoweroftwo": True}
+    m["format"] = "dxt5"
+    meta.write_text(json.dumps(m, indent="\t"), encoding="utf-8")
+    print(f"  BG: dxt5 {pw}x{ph} (image {w}x{h}) + {len(levels) - 1} mips; on-screen error max {err.max():.2f} levels")
 
 
 # ---------------------------------------------------------------- 5b. mandala layer
