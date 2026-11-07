@@ -1,0 +1,9 @@
+*.tex binary
+*.gif binary
+*.png binary
+*.frag text eol=lf
+*.vert text eol=lf
+*.in text eol=lf
+*.js text eol=lf
+*.py text eol=lf
+*.md text eol=lf

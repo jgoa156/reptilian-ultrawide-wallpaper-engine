@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+# Wallpaper Engine's compiled shader cache
+*.dxs
+.DS_Store
+Thumbs.db
+desktop.ini

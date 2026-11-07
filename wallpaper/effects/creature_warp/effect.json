@@ -1,0 +1,17 @@
+{
+	"version": 1,
+	"replacementkey": "creature_warp",
+	"name": "Creature warp",
+	"description": "All of the creature's motion effects, lens and fold clip in one pass",
+	"group": "localeffects",
+	"passes": [
+		{
+			"material": "materials/effects/creature_warp.json"
+		}
+	],
+	"dependencies": [
+		"materials/effects/creature_warp.json",
+		"shaders/effects/creature_warp.frag",
+		"shaders/effects/creature_warp.vert"
+	]
+}
