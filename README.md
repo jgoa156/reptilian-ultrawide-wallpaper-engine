@@ -27,6 +27,8 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
 | Mandala spin (seconds per turn) | 39 |
 | Mandala min / max opacity (%) | 0 / 15 |
 | Mandala blur (px) | 0 |
+| Mandala beat glitch (on/off) + Glitch strength (%, 0–300) | on, 100 |
+| Mandala datamosh noise (on/off) + Datamosh strength (%, 0–300) | on, 100 |
 
 ## Install
 Copy `wallpaper/` into `steamapps/common/wallpaper_engine/projects/myprojects/<any name>/` and
@@ -86,7 +88,10 @@ The repo is a complete copy of the project: everything the current pipeline read
 `optimize_creature.py` rebuilds `wallpaper/scene.json` from the source project, so a scene
 change made in the WE editor on `wallpaper/` (layers, effects, particles) lasts only until the
 next run. For lasting changes, edit the source project (it opens in the WE editor too), then run
-the optimiser. `project.json` (user properties, title, preview) is not rebuilt.
+the optimiser. `project.json` (user properties, title, preview) is not rebuilt; the glitch
+properties come from `scripts/add_glitch_properties.py`. The mandala's controller script is
+`scripts/mandala_controller.js`, injected by the optimiser. `scene.pkg` is the package Wallpaper
+Engine writes when you publish; it is not kept in the repo.
 
 ## Credits
 - **Artwork**: the Reptilian illustration by [death.yon](https://www.instagram.com/death.yon).

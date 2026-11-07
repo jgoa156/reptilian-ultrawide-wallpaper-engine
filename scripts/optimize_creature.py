@@ -644,7 +644,9 @@ def optimize_mandala(scene):
     o["image"] = "models/util/solidlayer.json"
     o["solid"] = True
     o["color"] = "0.00000 0.00000 0.00000"
-    frag = (SHADER_SRC / "mandala_spectrum.frag").read_text(encoding="utf-8")
+    # the controller script lives in scripts/ (glitch/datamosh user properties were added there)
+    o["alpha"]["script"] = (HERE / "scripts" / "mandala_controller.js").read_text(encoding="utf-8")
+    frag =(SHADER_SRC / "mandala_spectrum.frag").read_text(encoding="utf-8")
     out = (frag.replace("0.0).a * inside", "0.0).r * inside")
                .replace("lod).a * step(", "lod).r * step(")
                .replace('"default":"Choronzon_mandala_black"', f'"default":"{MANDALA_TEX}"'))
@@ -657,7 +659,7 @@ def optimize_mandala(scene):
 # ---------------------------------------------------------------- 6. orphans
 
 def cleanup(scene):
-    keep = {"project.json", "scene.json", "preview.gif"}
+    keep = {"project.json", "scene.json", "preview.gif", "scene.pkg"}   # scene.pkg: WE's publish package
 
     def add_material(rel):
         keep.add(rel)

@@ -748,3 +748,17 @@ first**, or the next run loses it. Order if something upstream changes: the old 
 Public: https://github.com/jgoa156/reptilian-ultrawide-wallpaper-engine, local clone
 `E:\Dev\reptilian-ultrawide-wallpaper-engine`. `python tools/export_repo.py` refreshes it (wallpaper/,
 scripts/, tools/, docs/, plus README/.gitignore/.gitattributes from `repo/`). Then commit and push there.
+The repo is self-contained: it also holds the optimiser's source project, `recovered_original/`, the
+mandala sources and the rig PNGs, and `scripts/we_paths.py` finds the WE project in any Steam library
+(else the repo's `wallpaper/`). A fresh clone rebuilt every texture, shader and mask byte-identically
+(README, "Set up on a new machine"). `scene.pkg` (WE's publish package) is kept by the optimiser's
+cleanup but not exported.
+
+## 15. Glitch / datamosh user properties (2026-11-07)
+`scripts/add_glitch_properties.py` adds four properties to project.json (idempotent, keeps current values):
+`mandalaglitch` (bool) + `mandalaglitchstrength` (0-300 %, shown only when on), `mandaladatamosh` (bool)
++ `mandaladatamoshstrength` (0-300 %). `scripts/mandala_controller.js` reads them in
+`applyUserProperties`: glitch strength multiplies the slice shove (`glitchshift`, on top of
+GLITCH_SCALE 0.1); datamosh strength multiplies the mosh opacity cap (MOSH_MAX 0.3, capped at 1, so
+333 % would be full). Off = no new triggers. The optimiser now injects `mandala_controller.js` into the
+MandalaK alpha script, so that file is the one to edit (the source project's copy is overwritten).

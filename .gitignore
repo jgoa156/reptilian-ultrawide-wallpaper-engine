@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 # Wallpaper Engine's compiled shader cache
 *.dxs
+# Wallpaper Engine's publish package (written by the editor's Share dialog)
+wallpaper/scene.pkg
 # pipeline scratch output (re-created by the scripts)
 optimized/
 .DS_Store

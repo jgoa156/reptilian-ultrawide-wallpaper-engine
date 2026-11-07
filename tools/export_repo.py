@@ -63,6 +63,7 @@ def sync(src_files, dst_root):
 def tree_files(src, only=None):
     return {p.relative_to(src).as_posix(): p for p in src.rglob("*")
             if p.is_file() and "__pycache__" not in p.parts and p.suffix.lower() not in SKIP
+            and p.name != "scene.pkg"                # WE's publish package, rebuilt on publish
             and (only is None or p.suffix.lower() in only)}
 
 

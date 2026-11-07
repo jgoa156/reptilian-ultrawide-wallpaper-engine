@@ -63,6 +63,16 @@ let glitchLv = 0, glitchSlices = 0;
 const GLITCH_SCALE = 0.1;           // user: "WAY WAY more subtle" -> a tenth of Leonard's shove
 const MOSH_MAX = 0.3;               // datamosh opacity cap (was 1)
 
+// user properties (project.json): beat glitch and datamosh noise, each on/off + strength in %
+let uGlitchOn = true, uGlitchAmt = 1, uMoshOn = true, uMoshAmt = 1;
+
+export function applyUserProperties(changed) {
+	if (changed.mandalaglitch !== undefined) uGlitchOn = !!changed.mandalaglitch;
+	if (changed.mandalaglitchstrength !== undefined) uGlitchAmt = changed.mandalaglitchstrength / 100;
+	if (changed.mandaladatamosh !== undefined) uMoshOn = !!changed.mandaladatamosh;
+	if (changed.mandaladatamoshstrength !== undefined) uMoshAmt = changed.mandaladatamoshstrength / 100;
+}
+
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
 function set(name, v) {
@@ -104,7 +114,8 @@ export function update(value) {
 	eavg += (eflux - eavg) * rate(0.02);
 	epulse = Math.max(epulse * Math.pow(0.8, k30), clamp(en, 0, 1.5));
 	const ms = engine.runtime * 1000;
-	if (p.glitch > 0 && en > 0.3 && e > 0.01 && ms >= glitchCool) {
+	const gAmt = uGlitchOn ? p.glitch * uGlitchAmt : 0;
+	if (gAmt > 0 && en > 0.3 && e > 0.01 && ms >= glitchCool) {
 		const lv = Math.min(1, Math.max(e * 0.6 / 0.3, Math.min(epulse, 1)));   // how hard the hit was
 		const slices = 3 + Math.floor(Math.random() * (1 + Math.round(lv * 4)));  // 3..7
 		// Leonard shoves a slice by up to 30 px * (1 + 2.5 lv) on an 800 px panel the mandala's
@@ -119,7 +130,7 @@ export function update(value) {
 	if (glitchOn && ms < glitchUntil) {
 		// re-roll every frame while active: fast flicker, not one held jump
 		set('glitchseed', Math.floor(Math.random() * 1000));
-		set('glitchshift', 30 * (1 + 2.5 * glitchLv) / 400 * GLITCH_SCALE * p.glitch * (0.5 + Math.random() * 0.5));
+		set('glitchshift', 30 * (1 + 2.5 * glitchLv) / 400 * GLITCH_SCALE * gAmt * (0.5 + Math.random() * 0.5));
 	} else if (glitchOn) {
 		set('glitchslices', 0);
 		glitchOn = false;
@@ -162,11 +173,12 @@ export function update(value) {
 	tickAcc += dt;
 	if (tickAcc >= 1 / 60) {
 		tickAcc = 0;
-		if (rel > p.moshLevel && bass > 0.05 && Math.random() < 0.5 * p.moshChance) {
+		const mAmt = uMoshOn ? uMoshAmt : 0;
+		if (mAmt > 0 && rel > p.moshLevel && bass > 0.05 && Math.random() < 0.5 * p.moshChance) {
 			moshSeed = Math.floor(Math.random() * 1000);
 			moshErrors = 1 + Math.floor(Math.random() * rel * 5.99);
 			mosh = clamp((rel - p.moshLevel) / Math.max(1 - p.moshLevel, 0.05) * 0.8 + 0.2, 0, 1)
-				* Math.min(p.moshChance, 1) * MOSH_MAX;
+				* Math.min(p.moshChance, 1) * Math.min(MOSH_MAX * mAmt, 1);
 		} else {
 			mosh *= 0.5;
 			if (mosh < 0.01) mosh = 0;
