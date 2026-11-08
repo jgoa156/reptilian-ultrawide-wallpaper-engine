@@ -12,6 +12,7 @@ paths as the working folder so every script runs unchanged in both:
   recovered_original/                        the art layers + original masks, lossless PNG
   Choronzon_mandala_black.png, mandala_canvas.png   mandala sources (scripts/add_mandalas.py)
   rig/**/*.png|json                          the motion maps as editable PNGs + reports
+  mock/*.png|py                              approved still mocks (edge smoke) + the script that drew them
   README.md, .gitignore, .gitattributes      from repo/
 
 Usage: python tools/export_repo.py [repo_dir]   (default E:/Dev/reptilian-ultrawide-wallpaper-engine)
@@ -32,7 +33,8 @@ TREES = {"wallpaper": (PROJ, None),
          "tools": (HERE / "tools", None),
          "backups/2026-11-07_before_optimize/project": (HERE / "backups" / "2026-11-07_before_optimize" / "project", None),
          "recovered_original": (HERE / "recovered_original", None),
-         "rig": (HERE / "rig", (".png", ".json"))}
+         "rig": (HERE / "rig", (".png", ".json")),
+         "mock": (HERE / "mock", (".png", ".py"))}
 DOCS = ["HANDOFF_animation.md", "HANDOFF_mandalas.md"]
 ROOT_FILES = {"README.md": HERE / "repo" / "README.md",
               ".gitignore": HERE / "repo" / "gitignore",

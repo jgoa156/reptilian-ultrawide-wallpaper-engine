@@ -14,6 +14,8 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
   to the tip, leans toward the cursor (up to 150 px at the tip on the 5040-wide art) on a slightly
   springy curve. When the cursor is below the tip it also lowers (up to 120 px), so with the
   cursor on the mandala's centre the tail points at it like a record needle.
+- **Smoke**: light black smoke (Wallpaper Engine's own smoke sprites) rises from behind the creature
+  on its side of the screen, drifts slightly inward and fades out around two-thirds of the height.
 - **Music**: the magenta and cyan ink layers pulse with the audio. Five blue bands across the chest
   and tail light up one frequency band each, and an extra cyan layer reacts to the bass.
 - **Spectrum mandala** (the 13-fold Choronzon mandala behind the creature) turns slowly and
@@ -33,6 +35,7 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
 | Mandala beat glitch (on/off) + Glitch strength (%, 0–300) | on, 100 |
 | Mandala datamosh noise (on/off) + Datamosh strength (%, 0–300) | on, 100 |
 | Mandala spin follows BPM (on/off) + Beats per piece (1–16, 13 pieces per turn) | off, 4 |
+| Smoke behind the creature (on/off) + Smoke opacity (%, 0–200) | on, 100 |
 
 ## Install
 Copy `wallpaper/` into `steamapps/common/wallpaper_engine/projects/myprojects/<any name>/` and
@@ -67,6 +70,7 @@ The repo is a complete copy of the project: everything the current pipeline read
 | `backups/2026-11-07_before_optimize/project/` | **The optimiser's source**: the scene before the performance pass, with full textures and every motion mask. Effect changes go here, then `optimize_creature.py` rebuilds `wallpaper/` |
 | `recovered_original/` | The art layers and the original masks as lossless PNG |
 | `rig/` | The motion maps as editable PNGs, plus reports and previews |
+| `mock/` | Still mocks shown before building (the edge smoke) and the script that drew them |
 | `Choronzon_mandala_black.png`, `mandala_canvas.png` | Mandala sources |
 | `docs/` | Working notes: how the rig, the mandala, the optimization and the arm follow were built and verified |
 
@@ -93,7 +97,8 @@ The repo is a complete copy of the project: everything the current pipeline read
 change made in the WE editor on `wallpaper/` (layers, effects, particles) lasts only until the
 next run. For lasting changes, edit the source project (it opens in the WE editor too), then run
 the optimiser. `project.json` (user properties, title, preview) is not rebuilt; the glitch
-and BPM-spin properties come from `scripts/add_mandala_properties.py`. The mandala's controller script is
+and BPM-spin properties come from `scripts/add_mandala_properties.py`, the smoke layer and its two
+properties from `scripts/add_edge_smoke.py`. The mandala's controller script is
 `scripts/mandala_controller.js`, injected by the optimiser. `scene.pkg` is the package Wallpaper
 Engine writes when you publish; it is not kept in the repo.
 

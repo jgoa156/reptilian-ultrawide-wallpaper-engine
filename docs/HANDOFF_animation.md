@@ -796,3 +796,18 @@ User: the arm should also move down while following, so the tail can point at th
   the tip read from layer K (Y up in the scene). Same spring; shares the `tailfollow` property.
 - `max_warp_px` counts the follow term x (1 + followdrop): max warp 438 -> 558 px, crops a bit larger.
 - Preview: `rig/v6/arm_follow_preview.png` (still, lean +1, lean -1, drop only, lean -1 + drop).
+
+## 18. Smoke behind the creature (2026-11-08, verified in WE)
+User picked the "light" still mock (`mock/smoke_mock_compare.png`, made by `mock/smoke_mock.py` on a
+desktop capture), creature side only. The mock's "tail stretch" was its own cut-out mask (a
+straight-edged block beside the tail); the real smoke is a layer behind the creature, so it has none.
+- `scripts/add_edge_smoke.py` (idempotent) writes `particles/edge_smoke.json` + `materials/edge_smoke.json`
+  (genericparticle, translucent, WE asset `particle/smoke/smoke2`, rg88 8x8 sheet, `animationmode`
+  randomframe) into the source and live projects, inserts layer "Smoke" right above MandalaK in the
+  source scene, refreshes K's layout script and adds `edgesmoke` (bool, binds `visible`) and
+  `smokeopacity` (0-200 %, `scripts/smoke_opacity.js` on the instance-override alpha) to project.json.
+- Authored in creature space (bottom-right pin): boxrandom +-990 x +-40 at (4130, -180), rate 8,
+  life 11-16 s, velocity x -75..5 / y 85..125, size 900-1300 x sizechange 0.33 -> 1, alpha 0.06-0.11,
+  colour ~black, slow rotation, light turbulence, starttime 16 (pre-simulated, full on load).
+- `scripts/reptilian_layout.js`: 'Smoke' is in GROUP, so it moves and scales with the creature (and
+  WE's flip mirrors it). `optimize_creature.py` cleanup keeps particle layers' system + material.

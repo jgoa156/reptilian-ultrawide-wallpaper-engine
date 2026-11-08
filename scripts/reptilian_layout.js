@@ -20,7 +20,9 @@ const ART = { right: 5120, bottom: 2, top: 2082 };
 const AUTHORED_CANVAS = { x: 5120, y: 2160 };
 // Shadow: outer drop shadow under W (same UV space, same motion).
 // CB_*: full-frame cyan crops (bass blue, one bass band each) above M; same UV space as the rest.
-const GROUP = ['Shadow', 'W', 'C', 'M', 'CB_Chest', 'CB_Tail4', 'CB_Tail3', 'CB_Tail2', 'CB_Tail1', 'C2', 'K'];
+// Smoke: the edge smoke particle system behind the creature (scripts/add_edge_smoke.py); it moves
+// and scales with the creature, so it keeps rising from behind it.
+const GROUP = ['Smoke', 'Shadow', 'W', 'C', 'M', 'CB_Chest', 'CB_Tail4', 'CB_Tail3', 'CB_Tail2', 'CB_Tail1', 'C2', 'K'];
 // Centred layers: kaleidoscope + the spectrum mandala (one black layer; its effect draws the
 // pieces, glitch, datamosh and splash). Any authored offset from the canvas centre is kept, scaled.
 const BACKGROUND = ['BG', 'MandalaK'];

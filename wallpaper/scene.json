@@ -254,6 +254,29 @@
 			"color": "0.00000 0.00000 0.00000"
 		},
 		{
+			"angles": "0.00000 0.00000 0.00000",
+			"id": 1275,
+			"image": null,
+			"instanceoverride": {
+				"alpha": {
+					"script": "'use strict';\n\n// Edge smoke opacity. Bound to the \"Smoke\" particle layer's instance-override alpha (installed by\n// scripts/add_edge_smoke.py). User property `smokeopacity` (0..200 %) multiplies the particles'\n// own alpha; 100 % is the approved \"light\" look.\n\nlet a = 1;\n\nexport function applyUserProperties(changed) {\n\tif (changed.hasOwnProperty('smokeopacity')) {\n\t\ta = Math.max(0, Number(changed.smokeopacity)) / 100;\n\t}\n}\n\nexport function update(value) {\n\treturn a;\n}\n",
+					"value": 1.0
+				},
+				"id": 1276
+			},
+			"locktransforms": false,
+			"model": null,
+			"name": "Smoke",
+			"origin": "4130.00000 -180.00000 0.00000",
+			"parallaxDepth": "1.00000 1.00000",
+			"particle": "particles/edge_smoke.json",
+			"scale": "1.00000 1.00000 1.00000",
+			"visible": {
+				"user": "edgesmoke",
+				"value": true
+			}
+		},
+		{
 			"castshadow": false,
 			"id": 1185,
 			"image": "models/Shadow.json",
@@ -264,7 +287,7 @@
 			"effects": [
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1275,
+					"id": 1277,
 					"name": "Creature warp (RIG)",
 					"passes": [
 						{
@@ -283,7 +306,7 @@
 									"value": 0.0
 								}
 							},
-							"id": 1276,
+							"id": 1278,
 							"textures": [
 								null,
 								"masks/cw_pack_a",
@@ -306,7 +329,7 @@
 			"effects": [
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1277,
+					"id": 1279,
 					"name": "Creature warp (RIG)",
 					"passes": [
 						{
@@ -325,7 +348,7 @@
 									"value": 0.0
 								}
 							},
-							"id": 1278,
+							"id": 1280,
 							"textures": [
 								null,
 								"masks/cw_pack_a",
@@ -385,7 +408,7 @@
 				},
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1279,
+					"id": 1281,
 					"name": "Creature warp (CSTACK)",
 					"passes": [
 						{
@@ -404,7 +427,7 @@
 									"value": 0.0
 								}
 							},
-							"id": 1280,
+							"id": 1282,
 							"textures": [
 								null,
 								"masks/cw_pack_a",
@@ -465,7 +488,7 @@
 				},
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1281,
+					"id": 1283,
 					"name": "Creature warp (CSTACK)",
 					"passes": [
 						{
@@ -485,7 +508,7 @@
 								},
 								"alphamax": 1.0
 							},
-							"id": 1282,
+							"id": 1284,
 							"textures": [
 								null,
 								"masks/cw_pack_a",
@@ -552,7 +575,7 @@
 				},
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1283,
+					"id": 1285,
 					"name": "Creature warp (CBCHEST)",
 					"passes": [
 						{
@@ -563,7 +586,7 @@
 								"uvrect": "0.72698413 0.09629630 0.27301587 0.90370370",
 								"supportsel": "1 0 0 0"
 							},
-							"id": 1284,
+							"id": 1286,
 							"textures": [
 								null,
 								"masks/cw_pack_a",
@@ -624,7 +647,7 @@
 				},
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1285,
+					"id": 1287,
 					"name": "Creature warp (CBTAIL)",
 					"passes": [
 						{
@@ -643,7 +666,7 @@
 									"value": 0.0
 								}
 							},
-							"id": 1286,
+							"id": 1288,
 							"textures": [
 								null,
 								"masks/cw_pack_a",
@@ -704,7 +727,7 @@
 				},
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1287,
+					"id": 1289,
 					"name": "Creature warp (CBTAIL)",
 					"passes": [
 						{
@@ -723,7 +746,7 @@
 									"value": 0.0
 								}
 							},
-							"id": 1288,
+							"id": 1290,
 							"textures": [
 								null,
 								"masks/cw_pack_a",
@@ -784,7 +807,7 @@
 				},
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1289,
+					"id": 1291,
 					"name": "Creature warp (CBTAIL2)",
 					"passes": [
 						{
@@ -803,7 +826,7 @@
 									"value": 0.0
 								}
 							},
-							"id": 1290,
+							"id": 1292,
 							"textures": [
 								null,
 								"masks/cw_pack_a",
@@ -864,7 +887,7 @@
 				},
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1291,
+					"id": 1293,
 					"name": "Creature warp (CBTAIL)",
 					"passes": [
 						{
@@ -883,7 +906,7 @@
 									"value": 0.0
 								}
 							},
-							"id": 1292,
+							"id": 1294,
 							"textures": [
 								null,
 								"masks/cw_pack_a",
@@ -938,7 +961,7 @@
 				},
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1293,
+					"id": 1295,
 					"name": "Creature warp (CSTACK)",
 					"passes": [
 						{
@@ -957,7 +980,7 @@
 									"value": 0.0
 								}
 							},
-							"id": 1294,
+							"id": 1296,
 							"textures": [
 								null,
 								"masks/cw_pack_a",
@@ -986,7 +1009,7 @@
 			"effects": [
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1295,
+					"id": 1297,
 					"name": "Creature warp (KPRE)",
 					"passes": [
 						{
@@ -997,7 +1020,7 @@
 								"uvrect": "0.55873016 0.00000000 0.44126984 1.00000000",
 								"supportsel": "0 1 0 0"
 							},
-							"id": 1296,
+							"id": 1298,
 							"textures": [
 								null,
 								"masks/cw_support_c",
@@ -1038,7 +1061,7 @@
 				},
 				{
 					"file": "effects/creature_warp/effect.json",
-					"id": 1297,
+					"id": 1299,
 					"name": "Creature warp (KPOST)",
 					"passes": [
 						{
@@ -1057,7 +1080,7 @@
 									"value": 0.0
 								}
 							},
-							"id": 1298,
+							"id": 1300,
 							"textures": [
 								null,
 								"masks/cw_pack_a",
@@ -1080,7 +1103,7 @@
 			"origin": "4008.00000 1082.00000 0.00000",
 			"size": "2224.00000 2160.00000",
 			"visible": {
-				"script": "'use strict';\n\n// Layout controller for the Reptilian wallpaper.\n// Bound to the \"visible\" property of layer K; it positions every art layer as one rigid group so\n// the effects and painted masks (which live in each layer's UV space) stay aligned on any resolution.\n//\n// Rules:\n//  - the creature is 90% of the visible screen height, width follows its aspect ratio\n//  - it is pinned to the bottom-right corner (the artwork is cropped at its bottom and right edge,\n//    so those edges must touch the screen); Wallpaper Engine's own flip option mirrors it to the left\n//  - the kaleidoscope background stays centred and scales with the screen height\n// Scene coordinates are bottom-left origin, Y up.\n\nexport var scriptProperties = createScriptProperties()\n\t.addSlider({ name: 'heightPercent', label: 'Height (% of screen)', value: 90, min: 10, max: 100, integer: false })\n\t.finish();\n\n// Creature bounds in the authored scene coordinates (measured from layer K's alpha).\nconst ART = { right: 5120, bottom: 2, top: 2082 };\nconst AUTHORED_CANVAS = { x: 5120, y: 2160 };\n// Shadow: outer drop shadow under W (same UV space, same motion).\n// CB_*: full-frame cyan crops (bass blue, one bass band each) above M; same UV space as the rest.\nconst GROUP = ['Shadow', 'W', 'C', 'M', 'CB_Chest', 'CB_Tail4', 'CB_Tail3', 'CB_Tail2', 'CB_Tail1', 'C2', 'K'];\n// Centred layers: kaleidoscope + the spectrum mandala (one black layer; its effect draws the\n// pieces, glitch, datamosh and splash). Any authored offset from the canvas centre is kept, scaled.\nconst BACKGROUND = ['BG', 'MandalaK'];\n\nlet base = null;\n\nfunction capture() {\n\tbase = {};\n\tfor (const name of GROUP.concat(BACKGROUND)) {\n\t\tconst layer = thisScene.getLayer(name);\n\t\tif (layer) {\n\t\t\tbase[name] = { layer: layer, origin: layer.origin.copy(), scale: layer.scale.copy() };\n\t\t}\n\t}\n}\n\n// Wallpaper Engine fills the screen with the scene canvas (centred, cropping the overflow),\n// so work out which part of the canvas is actually visible.\nfunction visibleRect(screen) {\n\tlet cw = engine.canvasSize.x;\n\tlet ch = engine.canvasSize.y;\n\tif (!(cw > 0 && ch > 0)) {\n\t\tcw = AUTHORED_CANVAS.x;\n\t\tch = AUTHORED_CANVAS.y;\n\t}\n\tconst res = screen || engine.screenResolution;\n\tconst aspect = res && res.x > 0 && res.y > 0 ? res.x / res.y : cw / ch;\n\tif (aspect < cw / ch) {\n\t\tconst w = ch * aspect;\n\t\treturn { x: (cw - w) / 2, y: 0, w: w, h: ch };\n\t}\n\tconst h = cw / aspect;\n\treturn { x: 0, y: (ch - h) / 2, w: cw, h: h };\n}\n\nfunction layout(screen) {\n\tif (!base) {\n\t\treturn;\n\t}\n\tconst view = visibleRect(screen);\n\tconst s = (scriptProperties.heightPercent / 100) * view.h / (ART.top - ART.bottom);\n\n\tfor (const name of GROUP) {\n\t\tconst b = base[name];\n\t\tif (!b) {\n\t\t\tcontinue;\n\t\t}\n\t\tb.layer.origin = new Vec3(view.x + view.w + (b.origin.x - ART.right) * s, view.y + (b.origin.y - ART.bottom) * s, b.origin.z);\n\t\tb.layer.scale = new Vec3(b.scale.x * s, b.scale.y * s, b.scale.z);\n\t}\n\n\tconst k = view.h / AUTHORED_CANVAS.y;\n\tfor (const name of BACKGROUND) {\n\t\tconst bg = base[name];\n\t\tif (!bg) {\n\t\t\tcontinue;\n\t\t}\n\t\tconst ox = (bg.origin.x - AUTHORED_CANVAS.x / 2) * k;\n\t\tconst oy = (bg.origin.y - AUTHORED_CANVAS.y / 2) * k;\n\t\tbg.layer.origin = new Vec3(view.x + view.w / 2 + ox, view.y + view.h / 2 + oy, bg.origin.z);\n\t\tbg.layer.scale = new Vec3(bg.scale.x * k, bg.scale.y * k, bg.scale.z);\n\t}\n}\n\nexport function init(value) {\n\tcapture();\n\tlayout();\n\treturn value;\n}\n\nexport function resizeScreen(size) {\n\tlayout(size);\n}\n",
+				"script": "'use strict';\n\n// Layout controller for the Reptilian wallpaper.\n// Bound to the \"visible\" property of layer K; it positions every art layer as one rigid group so\n// the effects and painted masks (which live in each layer's UV space) stay aligned on any resolution.\n//\n// Rules:\n//  - the creature is 90% of the visible screen height, width follows its aspect ratio\n//  - it is pinned to the bottom-right corner (the artwork is cropped at its bottom and right edge,\n//    so those edges must touch the screen); Wallpaper Engine's own flip option mirrors it to the left\n//  - the kaleidoscope background stays centred and scales with the screen height\n// Scene coordinates are bottom-left origin, Y up.\n\nexport var scriptProperties = createScriptProperties()\n\t.addSlider({ name: 'heightPercent', label: 'Height (% of screen)', value: 90, min: 10, max: 100, integer: false })\n\t.finish();\n\n// Creature bounds in the authored scene coordinates (measured from layer K's alpha).\nconst ART = { right: 5120, bottom: 2, top: 2082 };\nconst AUTHORED_CANVAS = { x: 5120, y: 2160 };\n// Shadow: outer drop shadow under W (same UV space, same motion).\n// CB_*: full-frame cyan crops (bass blue, one bass band each) above M; same UV space as the rest.\n// Smoke: the edge smoke particle system behind the creature (scripts/add_edge_smoke.py); it moves\n// and scales with the creature, so it keeps rising from behind it.\nconst GROUP = ['Smoke', 'Shadow', 'W', 'C', 'M', 'CB_Chest', 'CB_Tail4', 'CB_Tail3', 'CB_Tail2', 'CB_Tail1', 'C2', 'K'];\n// Centred layers: kaleidoscope + the spectrum mandala (one black layer; its effect draws the\n// pieces, glitch, datamosh and splash). Any authored offset from the canvas centre is kept, scaled.\nconst BACKGROUND = ['BG', 'MandalaK'];\n\nlet base = null;\n\nfunction capture() {\n\tbase = {};\n\tfor (const name of GROUP.concat(BACKGROUND)) {\n\t\tconst layer = thisScene.getLayer(name);\n\t\tif (layer) {\n\t\t\tbase[name] = { layer: layer, origin: layer.origin.copy(), scale: layer.scale.copy() };\n\t\t}\n\t}\n}\n\n// Wallpaper Engine fills the screen with the scene canvas (centred, cropping the overflow),\n// so work out which part of the canvas is actually visible.\nfunction visibleRect(screen) {\n\tlet cw = engine.canvasSize.x;\n\tlet ch = engine.canvasSize.y;\n\tif (!(cw > 0 && ch > 0)) {\n\t\tcw = AUTHORED_CANVAS.x;\n\t\tch = AUTHORED_CANVAS.y;\n\t}\n\tconst res = screen || engine.screenResolution;\n\tconst aspect = res && res.x > 0 && res.y > 0 ? res.x / res.y : cw / ch;\n\tif (aspect < cw / ch) {\n\t\tconst w = ch * aspect;\n\t\treturn { x: (cw - w) / 2, y: 0, w: w, h: ch };\n\t}\n\tconst h = cw / aspect;\n\treturn { x: 0, y: (ch - h) / 2, w: cw, h: h };\n}\n\nfunction layout(screen) {\n\tif (!base) {\n\t\treturn;\n\t}\n\tconst view = visibleRect(screen);\n\tconst s = (scriptProperties.heightPercent / 100) * view.h / (ART.top - ART.bottom);\n\n\tfor (const name of GROUP) {\n\t\tconst b = base[name];\n\t\tif (!b) {\n\t\t\tcontinue;\n\t\t}\n\t\tb.layer.origin = new Vec3(view.x + view.w + (b.origin.x - ART.right) * s, view.y + (b.origin.y - ART.bottom) * s, b.origin.z);\n\t\tb.layer.scale = new Vec3(b.scale.x * s, b.scale.y * s, b.scale.z);\n\t}\n\n\tconst k = view.h / AUTHORED_CANVAS.y;\n\tfor (const name of BACKGROUND) {\n\t\tconst bg = base[name];\n\t\tif (!bg) {\n\t\t\tcontinue;\n\t\t}\n\t\tconst ox = (bg.origin.x - AUTHORED_CANVAS.x / 2) * k;\n\t\tconst oy = (bg.origin.y - AUTHORED_CANVAS.y / 2) * k;\n\t\tbg.layer.origin = new Vec3(view.x + view.w / 2 + ox, view.y + view.h / 2 + oy, bg.origin.z);\n\t\tbg.layer.scale = new Vec3(bg.scale.x * k, bg.scale.y * k, bg.scale.z);\n\t}\n}\n\nexport function init(value) {\n\tcapture();\n\tlayout();\n\treturn value;\n}\n\nexport function resizeScreen(size) {\n\tlayout(size);\n}\n",
 				"scriptproperties": {
 					"heightPercent": 90
 				},

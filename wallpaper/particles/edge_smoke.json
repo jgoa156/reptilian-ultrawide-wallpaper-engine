@@ -1,0 +1,150 @@
+{
+	"animationmode": "randomframe",
+	"children": null,
+	"controlpoint": [
+		{
+			"flags": 0,
+			"id": 0,
+			"offset": "0 0 0"
+		},
+		{
+			"flags": 0,
+			"id": 1,
+			"offset": "0 0 0"
+		},
+		{
+			"flags": 0,
+			"id": 2,
+			"offset": "0 0 0"
+		},
+		{
+			"flags": 0,
+			"id": 3,
+			"offset": "0 0 0"
+		},
+		{
+			"flags": 0,
+			"id": 4,
+			"offset": "0 0 0"
+		},
+		{
+			"flags": 0,
+			"id": 5,
+			"offset": "0 0 0"
+		},
+		{
+			"flags": 0,
+			"id": 6,
+			"offset": "0 0 0"
+		},
+		{
+			"flags": 0,
+			"id": 7,
+			"offset": "0 0 0"
+		}
+	],
+	"emitter": [
+		{
+			"directions": "1 1 0",
+			"distancemax": "990 40 0",
+			"distancemin": "0 0 0",
+			"id": 7,
+			"name": "boxrandom",
+			"origin": "0 0 0",
+			"rate": 8,
+			"speedmax": 0,
+			"speedmin": 0
+		}
+	],
+	"flags": 0,
+	"initializer": [
+		{
+			"id": 2,
+			"name": "lifetimerandom",
+			"min": 11,
+			"max": 16
+		},
+		{
+			"id": 3,
+			"name": "sizerandom",
+			"min": 900,
+			"max": 1300
+		},
+		{
+			"id": 4,
+			"name": "colorrandom",
+			"min": "0 0 0",
+			"max": "10 10 12"
+		},
+		{
+			"id": 5,
+			"name": "alpharandom",
+			"min": 0.06,
+			"max": 0.11
+		},
+		{
+			"id": 6,
+			"name": "velocityrandom",
+			"min": "-75 85 0",
+			"max": "5 125 0"
+		},
+		{
+			"id": 12,
+			"name": "rotationrandom",
+			"min": "0 0 0",
+			"max": "0 0 6.2831"
+		},
+		{
+			"id": 13,
+			"name": "angularvelocityrandom",
+			"min": "0 0 -0.2",
+			"max": "0 0 0.2"
+		}
+	],
+	"material": "materials/edge_smoke.json",
+	"maxcount": 200,
+	"operator": [
+		{
+			"id": 8,
+			"name": "movement",
+			"drag": 0,
+			"gravity": "0 0 0"
+		},
+		{
+			"id": 14,
+			"name": "angularmovement",
+			"drag": 0,
+			"force": "0 0 0"
+		},
+		{
+			"id": 9,
+			"name": "alphafade",
+			"fadeintime": 0.15,
+			"fadeouttime": 0.6
+		},
+		{
+			"id": 10,
+			"name": "sizechange",
+			"starttime": 0,
+			"endtime": 1,
+			"startvalue": 0.33,
+			"endvalue": 1
+		},
+		{
+			"id": 11,
+			"name": "turbulence",
+			"scale": 0.002,
+			"speedmin": 8,
+			"speedmax": 25,
+			"timescale": 0.15
+		}
+	],
+	"renderer": [
+		{
+			"id": 1,
+			"name": "sprite"
+		}
+	],
+	"sequencemultiplier": 1,
+	"starttime": 16
+}

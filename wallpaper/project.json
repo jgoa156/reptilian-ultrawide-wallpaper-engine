@@ -136,6 +136,25 @@
                 "precision": 0,
                 "value": 4,
                 "condition": "mandalabpmspin.value == true"
+            },
+            "edgesmoke": {
+                "index": 13,
+                "order": 113,
+                "text": "Smoke behind the creature",
+                "type": "bool",
+                "value": true
+            },
+            "smokeopacity": {
+                "index": 14,
+                "order": 114,
+                "text": "Smoke opacity (%)",
+                "type": "slider",
+                "min": 0,
+                "max": 200,
+                "step": 1,
+                "precision": 0,
+                "value": 100,
+                "condition": "edgesmoke.value == true"
             }
         },
         "supportsaudioprocessing": true

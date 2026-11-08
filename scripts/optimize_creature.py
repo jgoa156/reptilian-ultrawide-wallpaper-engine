@@ -687,6 +687,10 @@ def cleanup(scene):
                 keep.add(f"materials/{t}{ext}")
 
     for o in scene["objects"]:
+        if o.get("particle"):                       # particle layer (edge smoke): system + material
+            keep.add(o["particle"])
+            add_material(json.loads((PROJ / o["particle"]).read_text(encoding="utf-8"))["material"])
+            continue
         if not (PROJ / o["image"]).exists():
             assert o["image"].startswith("models/util/"), o["image"]     # WE built-in (solid layer)
         else:
