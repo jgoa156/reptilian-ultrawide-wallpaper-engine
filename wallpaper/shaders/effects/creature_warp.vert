@@ -32,6 +32,7 @@ varying vec4 v_Misc2;
 #define TAIL_SPEED 1.04
 #define TAIL_AMP2 0.005476
 #define TAIL_FOLLOW_AMP2 0.030625
+#define TAIL_DROP_AMP2 0.057166667
 #define S1_CENTER vec2(0.83175, 0.42204)
 #define S1_AXIS vec2(0.68172277, 0.7316106)
 #define S1_RATIO 0.7697919

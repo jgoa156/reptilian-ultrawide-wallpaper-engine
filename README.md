@@ -12,7 +12,8 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
   lens + chromatic aberration pass sits on top.
 - **The arm follows the mouse**: the whole spike next to the head, from the coil it grows out of
   to the tip, leans toward the cursor (up to 150 px at the tip on the 5040-wide art) on a slightly
-  springy curve.
+  springy curve. When the cursor is below the tip it also lowers (up to 120 px), so with the
+  cursor on the mandala's centre the tail points at it like a record needle.
 - **Music**: the magenta and cyan ink layers pulse with the audio. Five blue bands across the chest
   and tail light up one frequency band each, and an extra cyan layer reacts to the bass.
 - **Spectrum mandala** (the 13-fold Choronzon mandala behind the creature) turns slowly and

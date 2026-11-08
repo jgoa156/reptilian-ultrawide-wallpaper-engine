@@ -781,3 +781,18 @@ MandalaK alpha script, so that file is the one to edit (the source project's cop
 - Offline test: `tools/bpm_test/` (spectra.py makes WE-like frames from a song with ffmpeg, run.mjs runs
   the real controller in Node and fails if the spin jumps). On 6 songs it held within ~2% of the
   whole-song reference after the first 15-30 s, at 60 fps, 30 fps and 30 Hz audio at 60/144 fps.
+
+## 17. Arm drops toward the cursor (2026-11-07, verified in WE)
+User: the arm should also move down while following, so the tail can point at the mandala's centre
+(a record needle).
+- No new texture (slots 0-9 are full): the drop reuses §14's bend shape along y. In `opTail`,
+  `p -= fx * vec2(f * TAIL_FOLLOW_AMP2, fd * TAIL_DROP_AMP2)`, with
+  `TAIL_DROP_AMP2 = followstrength^2 * followdrop * TW / TH`. The idle sway fades with `max(|f|, fd)`.
+- `followdrop` 0.8 = 120 px drop / 150 px lean at the tip; `tools/arm_follow_field.py --drop 120`
+  checks lean -1/0/+1 combined with full drop (worst ink strain 0.210, min Jacobian det 0.337, 0.898
+  on ink; MIN_DET 0.2 matches GAP_COMPRESS 0.8) and writes `followdrop` into the source's "Rig: Tail".
+- `scripts/tail_follow.js` has `AXIS`: 0 drives `follow` (lean), 1 drives `followdown` (the optimiser
+  installs a second copy). Drop target = clamp((tipY - cursorY) / (0.25 x canvas height), 0, 1), with
+  the tip read from layer K (Y up in the scene). Same spring; shares the `tailfollow` property.
+- `max_warp_px` counts the follow term x (1 + followdrop): max warp 438 -> 558 px, crops a bit larger.
+- Preview: `rig/v6/arm_follow_preview.png` (still, lean +1, lean -1, drop only, lean -1 + drop).

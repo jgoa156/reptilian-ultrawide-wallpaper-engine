@@ -128,6 +128,8 @@ def constants(V, boxes, lens):
     d(f"#define TAIL_SPEED {f(t.get('speed', 1.04))}")
     d(f"#define TAIL_AMP2 {f(float(t.get('strength', 0.074)) ** 2)}")
     d(f"#define TAIL_FOLLOW_AMP2 {f(float(t.get('followstrength', 0.108)) ** 2)}")
+    # arm drop: the same field along y, followdrop x the lean, converted to v units
+    d(f"#define TAIL_DROP_AMP2 {f(float(t.get('followstrength', 0.108)) ** 2 * float(t.get('followdrop', 0)) * TW / TH)}")
 
     def spin(tag, name):
         cv = V[name]["cv"]
@@ -336,7 +338,8 @@ def max_warp_px(V, fm):
     parts = {
         "hair": c("Rig: Hair & Tendrils", "strength") ** 2 * fm["hair"] * TW,
         "tail": (float(t.get("strength", 0.074)) ** 2 * fm["tail"]
-                 + float(t.get("followstrength", 0.108)) ** 2 * fm["follow"]) * TW,
+                 + float(t.get("followstrength", 0.108)) ** 2 * fm["follow"]
+                 * (1 + float(t.get("followdrop", 0)))) * TW,
         "head-body": c("Rig: Head & Body", "strength") ** 2 * fm["hb"] * TW,
         "belly": c("Rig: Belly", "strength") ** 2 * fm["belly"] * TW,
         "face": c("Rig: Face", "strength") ** 2 * fm["face"] * TW,
@@ -504,9 +507,12 @@ def main():
         return next_id[0] - 1
 
     k_rect = rects[layer_texture(by_name["K"])]
-    k_cx = (k_rect[0] + k_rect[2]) / 2
-    follow_js = TAIL_FOLLOW_JS.replace("const TEX_CX = 2520;", f"const TEX_CX = {k_cx:g};")
-    assert follow_js != TAIL_FOLLOW_JS or k_cx == 2520, "tail_follow.js has no TEX_CX constant"
+    k_cx, k_cy = (k_rect[0] + k_rect[2]) / 2, (k_rect[1] + k_rect[3]) / 2
+    assert "const TEX_CX = 2520;" in TAIL_FOLLOW_JS and "const TEX_CY = 1080;" in TAIL_FOLLOW_JS
+    follow_js = (TAIL_FOLLOW_JS.replace("const TEX_CX = 2520;", f"const TEX_CX = {k_cx:g};")
+                 .replace("const TEX_CY = 1080;", f"const TEX_CY = {k_cy:g};"))
+    assert "const AXIS = 0;" in follow_js, "tail_follow.js has no AXIS constant"
+    follow_down_js = follow_js.replace("const AXIS = 0;", "const AXIS = 1;")
 
     def uber(layer, layout):
         o = by_name[layer]
@@ -524,6 +530,7 @@ def main():
             fol = dict(tail["passes"][0]["constantshadervalues"]["follow"])
             fol["script"] = follow_js
             cv["follow"] = fol
+            cv["followdown"] = {"script": follow_down_js, "value": 0.0}     # arm drop (cursor below the tip)
         if any(e.get("file", "").endswith("motionblur/effect.json") for e in o["effects"]):
             cv["alphamax"] = 1.0          # the motion blur's 8-bit buffer capped the pulsed alpha
         sup = f"{MASKS}cw_support_{k}"

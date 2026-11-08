@@ -66,6 +66,7 @@ uniform float g_Time;
 uniform vec4 g_UvRect; // {"material":"uvrect","label":"Layer rect in full uv","default":"0 0 1 1"}
 uniform vec4 g_SupportSel; // {"material":"supportsel","label":"Support channel","default":"1 0 0 0"}
 uniform float g_Follow; // {"material":"follow","label":"Mouse follow (-1..1)","default":0,"range":[-1,1]}
+uniform float g_FollowDown; // {"material":"followdown","label":"Mouse follow, arm drop (0..1)","default":0,"range":[0,1]}
 uniform float g_AlphaMax; // {"material":"alphamax","label":"Alpha cap of the input","default":1000}
 
 #define ASPECT 2.3333333
@@ -80,6 +81,7 @@ uniform float g_AlphaMax; // {"material":"alphamax","label":"Alpha cap of the in
 #define TAIL_SPEED 1.04
 #define TAIL_AMP2 0.005476
 #define TAIL_FOLLOW_AMP2 0.030625
+#define TAIL_DROP_AMP2 0.057166667
 #define S1_CENTER vec2(0.83175, 0.42204)
 #define S1_AXIS vec2(0.68172277, 0.7316106)
 #define S1_RATIO 0.7697919
@@ -317,9 +319,13 @@ vec2 opTail(vec2 p)
 		vec4 b = texSample2D(g_Texture2, p);
 		float sway = sin(TAIL_SPEED * g_Time + phase) * 0.996;
 		float f = clamp(g_Follow, -1.0, 1.0);
-		// follow field: x only, 16 bits over b (hi) and a (lo); linear filtering commutes with this
+		float fd = clamp(g_FollowDown, 0.0, 1.0);
+		// follow field: one shape, 16 bits over b (hi) and a (lo); linear filtering commutes with
+		// this. Lean = f * shape along x, drop = fd * shape along y (TAIL_DROP_AMP2 = followdrop x
+		// the lean amplitude, in v units)
 		float fx = (dot(b.ba, vec2(65280.0, 255.0)) - 32640.0) / 32640.0;
-		p += sway * (1.0 - abs(f)) * TAIL_AMP2 * flowOf(b.rg) - f * TAIL_FOLLOW_AMP2 * vec2(fx, 0.0);
+		p += sway * (1.0 - max(abs(f), fd)) * TAIL_AMP2 * flowOf(b.rg)
+			- fx * vec2(f * TAIL_FOLLOW_AMP2, fd * TAIL_DROP_AMP2);
 	}
 #endif
 	return p;
