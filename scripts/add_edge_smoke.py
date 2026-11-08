@@ -1,7 +1,9 @@
-"""Black smoke rising from behind the creature (its screen edge only; WE's flip mirrors it with
-everything else). Idempotent.
+"""Black smoke rising from both screen edges: behind the creature on its side ("Smoke"), and the
+same system mirrored on the opposite edge ("SmokeFar"). WE's flip mirrors both with everything
+else. Idempotent.
 
 Writes, into the optimiser's source project AND the live project:
+  particles/edge_smoke_far.json  the same, inward drift flipped, for the opposite edge
   particles/edge_smoke.json   WE particle system: Wallpaper Engine's own smoke2 sprite sheet (random
                               frame per puff), black, normal (translucent) blending
   materials/edge_smoke.json   genericparticle material on particle/smoke/smoke2 (a WE asset)
@@ -91,14 +93,20 @@ def write_json(path, obj):
     path.write_text(json.dumps(obj, indent="\t"), encoding="utf-8")
 
 
+# mirror for the opposite screen edge: same system, inward drift flipped (+x)
+PARTICLE_FAR = json.loads(json.dumps(PARTICLE))
+vel = next(i for i in PARTICLE_FAR["initializer"] if i["name"] == "velocityrandom")
+vel["min"], vel["max"] = "-5 85 0", "75 125 0"
+
 for root in (SRC, PROJ):
     write_json(root / "particles" / "edge_smoke.json", PARTICLE)
+    write_json(root / "particles" / "edge_smoke_far.json", PARTICLE_FAR)
     write_json(root / "materials" / "edge_smoke.json", MATERIAL)
 
 scene_path = SRC / "scene.json"
 scene = json.loads(scene_path.read_text(encoding="utf-8"))
 objs = scene["objects"]
-objs[:] = [o for o in objs if o.get("name") != "Smoke"]
+objs[:] = [o for o in objs if o.get("name") not in ("Smoke", "SmokeFar")]
 ids = []
 
 
@@ -131,8 +139,12 @@ smoke = {
     "scale": "1.00000 1.00000 1.00000",
     "visible": {"user": "edgesmoke", "value": True},
 }
+far = json.loads(json.dumps(smoke))
+far.update({"id": max(ids) + 3, "name": "SmokeFar", "origin": "990.00000 -180.00000 0.00000",
+            "particle": "particles/edge_smoke_far.json"})
+far["instanceoverride"]["id"] = max(ids) + 4
 at = next(i for i, o in enumerate(objs) if o.get("name") == "MandalaK") + 1
-objs.insert(at, smoke)
+objs[at:at] = [smoke, far]
 k = next(o for o in objs if o.get("name") == "K")
 k["visible"]["script"] = (HERE / "scripts" / "reptilian_layout.js").read_text(encoding="utf-8")
 scene_path.write_text(json.dumps(scene, indent="\t", ensure_ascii=False), encoding="utf-8")
@@ -145,4 +157,4 @@ for name, v in PROPS.items():
         v = {**v, "value": props[name].get("value", v["value"])}    # keep the user's setting
     props[name] = v
 pj_path.write_text(json.dumps(pj, indent=4, ensure_ascii=False), encoding="utf-8")
-print("Smoke layer installed above MandalaK; properties:", ", ".join(PROPS))
+print("Smoke + SmokeFar layers installed above MandalaK; properties:", ", ".join(PROPS))

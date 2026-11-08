@@ -26,12 +26,14 @@ const GROUP = ['Smoke', 'Shadow', 'W', 'C', 'M', 'CB_Chest', 'CB_Tail4', 'CB_Tai
 // Centred layers: kaleidoscope + the spectrum mandala (one black layer; its effect draws the
 // pieces, glitch, datamosh and splash). Any authored offset from the canvas centre is kept, scaled.
 const BACKGROUND = ['BG', 'MandalaK'];
+// The smoke's mirror on the opposite edge: pinned bottom-left, same scale as the creature.
+const FAR = ['SmokeFar'];
 
 let base = null;
 
 function capture() {
 	base = {};
-	for (const name of GROUP.concat(BACKGROUND)) {
+	for (const name of GROUP.concat(BACKGROUND, FAR)) {
 		const layer = thisScene.getLayer(name);
 		if (layer) {
 			base[name] = { layer: layer, origin: layer.origin.copy(), scale: layer.scale.copy() };
@@ -71,6 +73,14 @@ function layout(screen) {
 			continue;
 		}
 		b.layer.origin = new Vec3(view.x + view.w + (b.origin.x - ART.right) * s, view.y + (b.origin.y - ART.bottom) * s, b.origin.z);
+		b.layer.scale = new Vec3(b.scale.x * s, b.scale.y * s, b.scale.z);
+	}
+	for (const name of FAR) {
+		const b = base[name];
+		if (!b) {
+			continue;
+		}
+		b.layer.origin = new Vec3(view.x + b.origin.x * s, view.y + (b.origin.y - ART.bottom) * s, b.origin.z);
 		b.layer.scale = new Vec3(b.scale.x * s, b.scale.y * s, b.scale.z);
 	}
 

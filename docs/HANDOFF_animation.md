@@ -811,3 +811,7 @@ straight-edged block beside the tail); the real smoke is a layer behind the crea
   colour ~black, slow rotation, light turbulence, starttime 16 (pre-simulated, full on load).
 - `scripts/reptilian_layout.js`: 'Smoke' is in GROUP, so it moves and scales with the creature (and
   WE's flip mirrors it). `optimize_creature.py` cleanup keeps particle layers' system + material.
+- Mirror (2026-11-08, verified in WE): layer "SmokeFar" (`particles/edge_smoke_far.json`, velocity x
+  -5..75, i.e. inward from the opposite edge) at authored (990, -180), right after "Smoke". The layout
+  script's FAR list pins it bottom-left of the visible rect with the creature's scale s. Same material,
+  same `edgesmoke` / `smokeopacity` bindings as "Smoke".

@@ -14,8 +14,9 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
   to the tip, leans toward the cursor (up to 150 px at the tip on the 5040-wide art) on a slightly
   springy curve. When the cursor is below the tip it also lowers (up to 120 px), so with the
   cursor on the mandala's centre the tail points at it like a record needle.
-- **Smoke**: light black smoke (Wallpaper Engine's own smoke sprites) rises from behind the creature
-  on its side of the screen, drifts slightly inward and fades out around two-thirds of the height.
+- **Smoke**: light black smoke (Wallpaper Engine's own smoke sprites) rises from both screen edges,
+  behind the creature on its side and mirrored on the other, drifts slightly inward and fades out
+  around two-thirds of the height.
 - **Music**: the magenta and cyan ink layers pulse with the audio. Five blue bands across the chest
   and tail light up one frequency band each, and an extra cyan layer reacts to the bass.
 - **Spectrum mandala** (the 13-fold Choronzon mandala behind the creature) turns slowly and
@@ -35,7 +36,7 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
 | Mandala beat glitch (on/off) + Glitch strength (%, 0–300) | on, 100 |
 | Mandala datamosh noise (on/off) + Datamosh strength (%, 0–300) | on, 100 |
 | Mandala spin follows BPM (on/off) + Beats per piece (1–16, 13 pieces per turn) | off, 4 |
-| Smoke behind the creature (on/off) + Smoke opacity (%, 0–200) | on, 100 |
+| Smoke behind the creature (on/off, both edges) + Smoke opacity (%, 0–200) | on, 100 |
 
 ## Install
 Copy `wallpaper/` into `steamapps/common/wallpaper_engine/projects/myprojects/<any name>/` and
