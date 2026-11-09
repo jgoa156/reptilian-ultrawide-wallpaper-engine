@@ -1,6 +1,6 @@
 """Outer drop shadow for the reptile. Safe to re-run (replaces the Shadow layer).
 
-  * silhouette = W (white body fill) + K (line art), holes filled
+  * silhouette = W (white body fill) + K (line art); holes (the teeth gaps) left open
   * shadow = a tight contact shadow plus a wide soft one, both cast toward the creature's open
     side (texture left = away from the cropped right edge; with WE's flip option it is mirrored
     along with the art) and slightly down. It is clipped to the OUTSIDE of the silhouette, so
@@ -55,9 +55,11 @@ NAME = "Shadow"
 def build(dx, dy, alpha):
     Wf = np.asarray(Image.open(HERE / "recovered_original" / "sprite bgpng_Prancheta 1.png"))[..., 3]
     Kf = np.asarray(Image.open(HERE / "recovered_original" / "Sem título-1_Prancheta 1.png"))[..., 3]
+    # holes are NOT filled: the creature's only enclosed holes are the 8 gaps between the teeth, where
+    # the background shows through; filled, they got no shadow and read as bright white slots
+    # (user, 2026-11-09). Now the upper jaw casts its shadow into them like onto any background.
     sil = np.maximum(Wf, Kf).astype(np.float32) / 255
-    solid = ndi.binary_fill_holes(sil > 0.12)
-    sil = np.maximum(sil, solid)
+    sil = np.maximum(sil, sil > 0.12)                 # antialiased edge pixels count as solid (as before)
     # the art is cropped at the bottom and right frame edges: 'nearest' keeps the shadow full there
     near = ndi.shift(sil, (dy * 0.45, dx * 0.45), order=1, mode="nearest")
     far = ndi.shift(sil, (dy, dx), order=1, mode="nearest")

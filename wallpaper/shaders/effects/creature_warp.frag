@@ -66,8 +66,17 @@ uniform float g_Time;
 uniform vec4 g_UvRect; // {"material":"uvrect","label":"Layer rect in full uv","default":"0 0 1 1"}
 uniform vec4 g_SupportSel; // {"material":"supportsel","label":"Support channel","default":"1 0 0 0"}
 uniform float g_Follow; // {"material":"follow","label":"Mouse follow (-1..1)","default":0,"range":[-1,1]}
-uniform float g_FollowDown; // {"material":"followdown","label":"Mouse follow, arm drop (0..1)","default":0,"range":[0,1]}
 uniform float g_AlphaMax; // {"material":"alphamax","label":"Alpha cap of the input","default":1000}
+uniform float g_ArmPose; // {"material":"armpose","label":"Arm pose: rest 0 .. needle 1","default":0,"range":[0,1]}
+// Set every frame by scripts/creature_driver.js (one copy, on K's second pass) on every layer.
+uniform float g_Bass; // {"material":"bass","label":"Bass level (0..1, smoothed)","default":0,"range":[0,1]}
+uniform float g_Loud; // {"material":"loud","label":"Loudness (0..1, slow)","default":0,"range":[0,1]}
+uniform float g_Beat; // {"material":"beat","label":"Beat pulse (0..1, decays)","default":0,"range":[0,1]}
+uniform float g_Jaw; // {"material":"jaw","label":"Jaw open (0..1)","default":0,"range":[-0.3,1.2]}
+uniform float g_Blink; // {"material":"blink","label":"Big eyes blink (0..1)","default":0,"range":[0,1]}
+uniform float g_LookX; // {"material":"lookx","label":"Eyes look x (layer uv, -1..1)","default":0,"range":[-1,1]}
+uniform float g_LookY; // {"material":"looky","label":"Eyes look y (layer uv, -1..1)","default":0,"range":[-1,1]}
+uniform vec4 g_Split; // {"material":"split","label":"Colour split on beats: offset xy, scale-1 (full uv)","default":"0 0 0 0"}
 
 #define ASPECT 2.3333333
 #define HAIR_SPEED 1.3
@@ -81,7 +90,6 @@ uniform float g_AlphaMax; // {"material":"alphamax","label":"Alpha cap of the in
 #define TAIL_SPEED 1.04
 #define TAIL_AMP2 0.005476
 #define TAIL_FOLLOW_AMP2 0.030625
-#define TAIL_DROP_AMP2 0.057166667
 #define S1_CENTER vec2(0.83175, 0.42204)
 #define S1_AXIS vec2(0.68172277, 0.7316106)
 #define S1_RATIO 0.7697919
@@ -196,6 +204,51 @@ uniform float g_AlphaMax; // {"material":"alphamax","label":"Alpha cap of the in
 #define BOX_BLUR vec4(0.90523256, 0.33055556, 0.96162791, 0.53888889)
 #define BOX_BLINK vec4(0.81802326, 0.29583333, 0.83662791, 0.39444444)
 #define BOX_FACE_RECT vec4(0.77142857, 0.17037037, 0.14761905, 0.5037037)
+#define ARM_PX vec2(5040.0, 2160.0)
+#define ARM_BOX vec4(0.575397, 0.159259, 0.873016, 1.005556)
+#define ARM_J vec2(4372.772689, 2088.224597)
+#define ARM_TURN -0.403171
+#define ARM_COIL vec2(0.995858, 0.090927)
+#define ARM_FAN_R1 200.000000
+#define ARM_FAN_R2 560.000000
+#define ARM_SINK 70.000000
+#define ARM_SINK_X vec2(4420.000000, 4900.000000)
+#define ARM_LINE_P vec2(5035.000000, 2107.000000)
+#define ARM_LINE_N vec2(-0.468393, 0.883520)
+#define ARM_FADE 140.000000
+#define ARM_FEATHER_IN 30.000000
+#define RIP_CENTER vec2(0.9325397, 0.75)
+#define RIP_SCALE 600.0
+#define RIP_FLOWMAX 0.9587196
+#define RIP_C0 vec4(-0.4584913, -0.4844668, 0.04715143, 2.540978)
+#define RIP_C1 vec3(-1.250198, 0.4744827, -0.09582814)
+#define RIP_C2 vec3(-4.761688, 1.583665, 1.31038)
+#define RIP_S0 vec4(-0.01999954, -0.7996754, 0.9471224, 1.156064)
+#define RIP_S1 vec3(0.03626867, -0.1774722, 2.619862)
+#define RIP_S2 vec3(1.069017, -0.4466338, -0.6827584)
+
+// ---- living creature (2026-11-09): music, cursor and idle motion on top of the rigs ----
+#define BREATH_GAIN 2.0          // belly breathing x2 in amplitude (user); combined strain 0.302 -> 0.319
+#define HEAVE_GAIN 0.3           // + bass x this: the belly field as a direct outward push
+#define RIP_AMP 3.0              // px: muscle ripple, stripes sliding along themselves (tools/torso_ripple.py)
+#define RIP_K 0.01496            // 2 pi / 420 px
+#define RIP_W 2.1                // rad/s (a crest every 3 s, rolling neck -> coil)
+#define RIP_DIR vec2(0.70710678, 0.70710678)
+#define LEAN_PIVOT vec2(5040.0, 2160.0)   // px: the body is pinned at the bottom-right corner
+#define LEAN_ANGLE 0.016         // rad: ~25 px at the head
+#define LEAN_SPEED 0.314         // rad/s: one slow sway every 20 s
+#define LEAN_FADE 320.0          // px: no sideways motion at the right edge, no vertical at the bottom
+#define BRISTLE 0.2              // hair amplitude + 20 % on loud passages
+#define JAW_HINGE vec2(4400.0, 1065.0)
+#define JAW_OPEN -0.05           // rad at g_Jaw 1 (negative = the chin swings away from the snout): ~25 px at the tendrils
+#define JAW_MOUTH_A vec2(4315.0, 1060.0)  // the mouth line (between the teeth rows)
+#define JAW_MOUTH_N vec2(0.88388, 0.46705) // its normal, toward the lower jaw
+#define LOOK_BIG 6.0             // px the big eyes' (Olhar, Olho) centres follow the cursor
+#define LOOK_SMALL 3.0           // px, Mini Eye 1, 2
+#define LOOK_IRIS 4.0            // px, Olho menor / Little Eyes
+#define BLINK_SQUASH 0.8         // big eyes close to a fifth of their height
+#define GILL_FLARE 0.06          // radial spread of the gills at full loudness
+#define SPLIT_GAIN 1.5           // colour layers' offset from K grows by this x the beat pulse
 
 #if LAYOUT == 0
 #define R_HAIR 1
@@ -291,6 +344,672 @@ vec2 flowOf(vec2 rg)
 	return (rg - vec2(0.498, 0.498)) * 2.0;
 }
 
+// ---- Arm reach (tools/arm_pose.py): the arm swings from its junction toward the mandala without
+// changing length, and the junction opens like a joint (the abdomen next to it fans out). 32-segment
+// skeleton; a pixel's (s, n) on the posed skeleton (vertex normals blended along each segment, so it
+// is continuous across joints) maps back to the same (s, n) on the rest skeleton. Work in layer px
+// (y down). ----
+
+// joint fan (all layouts, so every layer holding the abdomen opens with it): the rest source of
+// output point q (px). The layer turns around the joint ARM_J with the arm's first segment on the
+// arm's side of its base normal line, easing to no turn at the coil direction; faded out by radius.
+vec2 armFan(vec2 q, float a, float w)
+{
+	vec2 d = q - ARM_J;
+	float turn = a * ARM_TURN;
+	// angle from the coil direction (no two-argument atan: WE's HLSL path has none)
+	vec2 dn = d / max(length(d), 0.0001);
+	float psi = acos(clamp(dot(dn, ARM_COIL), -1.0, 1.0));
+	psi = (ARM_COIL.x * dn.y - ARM_COIL.y * dn.x < 0.0) ? -psi : psi;
+	float lim = (psi < 0.0 ? -1.57079633 : 1.57079633) + turn;
+	float s = smoothstep(0.0, 1.0, psi / lim);
+	float fr = 1.0 - smoothstep(ARM_FAN_R1, ARM_FAN_R2, length(d));
+	float th = -turn * s * fr * w;
+	return ARM_J + rot2(d, vec2(cos(th), sin(th)));
+}
+
+// line mask: 0 above the user's line (nothing there may move), 1 from ARM_FADE px below it
+float armBelow(vec2 q)
+{
+	return smoothstep(0.0, 1.0, dot(q - ARM_LINE_P, ARM_LINE_N) / ARM_FADE);
+}
+
+// pre-arm sink (all layouts): undo the sink of the joint and the coil around it, so the pre-arm's
+// arc points down under the screen edge; full around the joint, fading toward the body, and only
+// below the line (w = armBelow at the output point)
+vec2 armSink(vec2 q, float a, float w)
+{
+	float g = 1.0 - smoothstep(ARM_SINK_X.x, ARM_SINK_X.y, q.x);
+	return q - vec2(0.0, a * ARM_SINK * w * g);
+}
+
+#if R_TAIL
+float cross2(vec2 u, vec2 v)
+{
+	return u.x * v.y - u.y * v.x;
+}
+
+// q on segment (A, A + D) with vertex normals NA, NB: returns (t, n, ok, soft); ok = q is on this
+// segment's normal fan and inside the band, half-width h.x .. h.y away from the head (n < 0) and
+// h.z .. h.w on the head side (n > 0, the arm's ink + a small margin, so the head's shadow is kept);
+// soft = the head-side fade past that edge (used for hiding the old place only)
+vec4 segCoord(vec2 q, vec2 A, vec2 D, vec2 NA, vec2 NB, vec4 h)
+{
+	vec2 Q = q - A;
+	vec2 E = NB - NA;
+	float c2 = -cross2(D, E);
+	float c1 = cross2(Q, E) - cross2(D, NA);
+	float c0 = cross2(Q, NA);
+	float t = -1.0;
+	if (abs(c2) < 1e-6)
+	{
+		t = abs(c1) > 1e-9 ? -c0 / c1 : -1.0;
+	}
+	else
+	{
+		float dd = c1 * c1 - 4.0 * c2 * c0;
+		if (dd >= 0.0)
+		{
+			float sq = sqrt(dd);
+			float t1 = (-c1 - sq) / (2.0 * c2);
+			float t2 = (-c1 + sq) / (2.0 * c2);
+			t = (t1 >= 0.0 && t1 <= 1.0) ? t1 : t2;
+		}
+	}
+	if (t < 0.0 || t > 1.0)
+	{
+		return vec4(0.0, 1e9, 0.0, 0.0);
+	}
+	vec2 N = NA + t * E;
+	float n = dot(Q - t * D, N) / length(N);
+	float hin = h.z + t * (h.w - h.z);
+	float hb = n > 0.0 ? hin : h.x + t * (h.y - h.x);
+	float soft = n > 0.0 ? 1.0 - smoothstep(hin, hin + ARM_FEATHER_IN, n) : 0.0;
+	return vec4(t, n, step(abs(n), hb), soft);
+}
+
+bool armRegion(vec2 x)
+{
+	return x.x < 3950.0 || (x.y > 1500.0 && x.x < 4400.0) || (x.y > 1870.0 && x.x < 4560.0);
+}
+
+vec4 armPose(vec2 q, vec2 qr, float a, inout vec4 rot)
+{
+	float th0 = -3.050540 + a * -0.403171;
+	float th1 = -2.919664 + a * -0.429010;
+	float th2 = -2.796454 + a * -0.499183;
+	float th3 = -2.901797 + a * -0.581104;
+	float th4 = -3.081439 + a * -0.644637;
+	float th5 = -2.567609 + a * -0.662099;
+	float th6 = -2.166865 + a * -0.647911;
+	float th7 = -2.081894 + a * -0.633723;
+	float th8 = -2.018428 + a * -0.619536;
+	float th9 = -1.967421 + a * -0.605348;
+	float th10 = -1.922429 + a * -0.591160;
+	float th11 = -1.882899 + a * -0.576972;
+	float th12 = -1.848856 + a * -0.562784;
+	float th13 = -1.819610 + a * -0.548596;
+	float th14 = -1.787794 + a * -0.534409;
+	float th15 = -1.748832 + a * -0.520221;
+	float th16 = -1.702933 + a * -0.506033;
+	float th17 = -1.650650 + a * -0.491845;
+	float th18 = -1.655300 + a * -0.477657;
+	float th19 = -1.841450 + a * -0.463469;
+	float th20 = -1.592780 + a * -0.449282;
+	float th21 = -1.583776 + a * -0.435094;
+	float th22 = -1.811717 + a * -0.420906;
+	float th23 = -1.805760 + a * -0.406718;
+	float th24 = -1.683594 + a * -0.392530;
+	float th25 = -1.377594 + a * -0.378342;
+	float th26 = -1.457327 + a * -0.364155;
+	float th27 = -1.661122 + a * -0.349967;
+	float th28 = -1.701805 + a * -0.335779;
+	float th29 = -1.738764 + a * -0.321591;
+	float th30 = -1.781932 + a * -0.307403;
+	float th31 = -1.840778 + a * -0.293215;
+	vec2 N0 = vec2(cos(th0 + 1.570796), sin(th0 + 1.570796));
+	vec2 N1 = vec2(cos(0.5 * (th0 + th1) + 1.570796), sin(0.5 * (th0 + th1) + 1.570796));
+	vec2 N2 = vec2(cos(0.5 * (th1 + th2) + 1.570796), sin(0.5 * (th1 + th2) + 1.570796));
+	vec2 N3 = vec2(cos(0.5 * (th2 + th3) + 1.570796), sin(0.5 * (th2 + th3) + 1.570796));
+	vec2 N4 = vec2(cos(0.5 * (th3 + th4) + 1.570796), sin(0.5 * (th3 + th4) + 1.570796));
+	vec2 N5 = vec2(cos(0.5 * (th4 + th5) + 1.570796), sin(0.5 * (th4 + th5) + 1.570796));
+	vec2 N6 = vec2(cos(0.5 * (th5 + th6) + 1.570796), sin(0.5 * (th5 + th6) + 1.570796));
+	vec2 N7 = vec2(cos(0.5 * (th6 + th7) + 1.570796), sin(0.5 * (th6 + th7) + 1.570796));
+	vec2 N8 = vec2(cos(0.5 * (th7 + th8) + 1.570796), sin(0.5 * (th7 + th8) + 1.570796));
+	vec2 N9 = vec2(cos(0.5 * (th8 + th9) + 1.570796), sin(0.5 * (th8 + th9) + 1.570796));
+	vec2 N10 = vec2(cos(0.5 * (th9 + th10) + 1.570796), sin(0.5 * (th9 + th10) + 1.570796));
+	vec2 N11 = vec2(cos(0.5 * (th10 + th11) + 1.570796), sin(0.5 * (th10 + th11) + 1.570796));
+	vec2 N12 = vec2(cos(0.5 * (th11 + th12) + 1.570796), sin(0.5 * (th11 + th12) + 1.570796));
+	vec2 N13 = vec2(cos(0.5 * (th12 + th13) + 1.570796), sin(0.5 * (th12 + th13) + 1.570796));
+	vec2 N14 = vec2(cos(0.5 * (th13 + th14) + 1.570796), sin(0.5 * (th13 + th14) + 1.570796));
+	vec2 N15 = vec2(cos(0.5 * (th14 + th15) + 1.570796), sin(0.5 * (th14 + th15) + 1.570796));
+	vec2 N16 = vec2(cos(0.5 * (th15 + th16) + 1.570796), sin(0.5 * (th15 + th16) + 1.570796));
+	vec2 N17 = vec2(cos(0.5 * (th16 + th17) + 1.570796), sin(0.5 * (th16 + th17) + 1.570796));
+	vec2 N18 = vec2(cos(0.5 * (th17 + th18) + 1.570796), sin(0.5 * (th17 + th18) + 1.570796));
+	vec2 N19 = vec2(cos(0.5 * (th18 + th19) + 1.570796), sin(0.5 * (th18 + th19) + 1.570796));
+	vec2 N20 = vec2(cos(0.5 * (th19 + th20) + 1.570796), sin(0.5 * (th19 + th20) + 1.570796));
+	vec2 N21 = vec2(cos(0.5 * (th20 + th21) + 1.570796), sin(0.5 * (th20 + th21) + 1.570796));
+	vec2 N22 = vec2(cos(0.5 * (th21 + th22) + 1.570796), sin(0.5 * (th21 + th22) + 1.570796));
+	vec2 N23 = vec2(cos(0.5 * (th22 + th23) + 1.570796), sin(0.5 * (th22 + th23) + 1.570796));
+	vec2 N24 = vec2(cos(0.5 * (th23 + th24) + 1.570796), sin(0.5 * (th23 + th24) + 1.570796));
+	vec2 N25 = vec2(cos(0.5 * (th24 + th25) + 1.570796), sin(0.5 * (th24 + th25) + 1.570796));
+	vec2 N26 = vec2(cos(0.5 * (th25 + th26) + 1.570796), sin(0.5 * (th25 + th26) + 1.570796));
+	vec2 N27 = vec2(cos(0.5 * (th26 + th27) + 1.570796), sin(0.5 * (th26 + th27) + 1.570796));
+	vec2 N28 = vec2(cos(0.5 * (th27 + th28) + 1.570796), sin(0.5 * (th27 + th28) + 1.570796));
+	vec2 N29 = vec2(cos(0.5 * (th28 + th29) + 1.570796), sin(0.5 * (th28 + th29) + 1.570796));
+	vec2 N30 = vec2(cos(0.5 * (th29 + th30) + 1.570796), sin(0.5 * (th29 + th30) + 1.570796));
+	vec2 N31 = vec2(cos(0.5 * (th30 + th31) + 1.570796), sin(0.5 * (th30 + th31) + 1.570796));
+	vec2 N32 = vec2(cos(th31 + 1.570796), sin(th31 + 1.570796));
+	vec2 A = vec2(4372.772689, 2088.224597) + a * vec2(0.000000, 70.000000);
+	vec2 D = vec2(0.0, 0.0);
+	vec3 r = vec3(0.0, 0.0, 0.0);
+	float bestN = 1e9;
+	float arm = 0.0;
+	vec2 src = vec2(0.0, 0.0);
+	float turn = 0.0;
+	float vs = 0.0;
+	float vp = 0.0;
+	D = 64.170205 * vec2(cos(th0), sin(th0));
+	r = segCoord(q, A, D, N0, N1, vec4(159.848374, 170.524615, 159.848374, 170.524615)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -1.479744 + r.x * 0.065438;
+		vp = (th0 + 1.570796) + r.x * ((0.5 * (th0 + th1) + 1.570796) - (th0 + 1.570796));
+		src = vec2(4372.772689, 2088.224597) + r.x * vec2(-63.904385, -5.834791) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th1), sin(th1));
+	r = segCoord(q, A, D, N1, N2, vec4(170.524615, 194.896554, 170.524615, 194.896554)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -1.414306 + r.x * 0.127043;
+		vp = (0.5 * (th0 + th1) + 1.570796) + r.x * ((0.5 * (th1 + th2) + 1.570796) - (0.5 * (th0 + th1) + 1.570796));
+		src = vec2(4308.868304, 2082.389806) + r.x * vec2(-62.596413, -14.124598) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th2), sin(th2));
+	r = segCoord(q, A, D, N2, N3, vec4(194.896554, 212.671917, 194.896554, 212.671917)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -1.287262 + r.x * 0.008934;
+		vp = (0.5 * (th1 + th2) + 1.570796) + r.x * ((0.5 * (th2 + th3) + 1.570796) - (0.5 * (th1 + th2) + 1.570796));
+		src = vec2(4246.271891, 2068.265208) + r.x * vec2(-60.385985, -21.710551) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th3), sin(th3));
+	r = segCoord(q, A, D, N3, N4, vec4(212.671917, 213.989310, 212.671917, 213.989310)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -1.278329 + r.x * -0.142493;
+		vp = (0.5 * (th2 + th3) + 1.570796) + r.x * ((0.5 * (th3 + th4) + 1.570796) - (0.5 * (th2 + th3) + 1.570796));
+		src = vec2(4185.885906, 2046.554658) + r.x * vec2(-62.334071, -15.240696) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th4), sin(th4));
+	r = segCoord(q, A, D, N4, N5, vec4(213.989310, 235.481601, 213.989310, 235.481601)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -1.420822 + r.x * 0.167094;
+		vp = (0.5 * (th3 + th4) + 1.570796) + r.x * ((0.5 * (th4 + th5) + 1.570796) - (0.5 * (th3 + th4) + 1.570796));
+		src = vec2(4123.551835, 2031.313962) + r.x * vec2(-64.054142, -3.857720) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th5), sin(th5));
+	r = segCoord(q, A, D, N5, N6, vec4(235.481601, 235.481601, 235.481601, 235.481601)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -1.253728 + r.x * 0.457287;
+		vp = (0.5 * (th4 + th5) + 1.570796) + r.x * ((0.5 * (th5 + th6) + 1.570796) - (0.5 * (th4 + th5) + 1.570796));
+		src = vec2(4059.497693, 2027.456242) + r.x * vec2(-53.886593, -34.843224) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th6), sin(th6));
+	r = segCoord(q, A, D, N6, N7, vec4(235.481601, 211.342935, 235.481601, 211.342935)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.796441 + r.x * 0.242858;
+		vp = (0.5 * (th5 + th6) + 1.570796) + r.x * ((0.5 * (th6 + th7) + 1.570796) - (0.5 * (th5 + th6) + 1.570796));
+		src = vec2(4005.611100, 1992.613019) + r.x * vec2(-36.024755, -53.103975) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th7), sin(th7));
+	r = segCoord(q, A, D, N7, N8, vec4(211.342935, 204.975115, 211.342935, 204.975115)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.553583 + r.x * 0.074219;
+		vp = (0.5 * (th6 + th7) + 1.570796) + r.x * ((0.5 * (th7 + th8) + 1.570796) - (0.5 * (th6 + th7) + 1.570796));
+		src = vec2(3969.586344, 1939.509043) + r.x * vec2(-31.387899, -55.969769) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th8), sin(th8));
+	r = segCoord(q, A, D, N8, N9, vec4(204.975115, 204.975115, 204.975115, 204.975115)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.479365 + r.x * 0.057237;
+		vp = (0.5 * (th7 + th8) + 1.570796) + r.x * ((0.5 * (th8 + th9) + 1.570796) - (0.5 * (th7 + th8) + 1.570796));
+		src = vec2(3938.198446, 1883.539275) + r.x * vec2(-27.774913, -57.847812) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th9), sin(th9));
+	r = segCoord(q, A, D, N9, N10, vec4(204.975115, 199.555196, 204.975115, 199.555196)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.422128 + r.x * 0.047999;
+		vp = (0.5 * (th8 + th9) + 1.570796) + r.x * ((0.5 * (th9 + th10) + 1.570796) - (0.5 * (th8 + th9) + 1.570796));
+		src = vec2(3910.423532, 1825.691463) + r.x * vec2(-24.789393, -59.188691) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th10), sin(th10));
+	r = segCoord(q, A, D, N10, N11, vec4(199.555196, 178.936381, 199.555196, 178.936381)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.374129 + r.x * 0.042261;
+		vp = (0.5 * (th9 + th10) + 1.570796) + r.x * ((0.5 * (th10 + th11) + 1.570796) - (0.5 * (th9 + th10) + 1.570796));
+		src = vec2(3885.634140, 1766.502771) + r.x * vec2(-22.102236, -60.243724) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th11), sin(th11));
+	r = segCoord(q, A, D, N11, N12, vec4(178.936381, 166.180650, 178.936381, 166.180650)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.331868 + r.x * 0.036787;
+		vp = (0.5 * (th10 + th11) + 1.570796) + r.x * ((0.5 * (th11 + th12) + 1.570796) - (0.5 * (th10 + th11) + 1.570796));
+		src = vec2(3863.531904, 1706.259047) + r.x * vec2(-19.704118, -61.070147) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th12), sin(th12));
+	r = segCoord(q, A, D, N12, N13, vec4(166.180650, 203.035372, 166.180650, 203.035372)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.295081 + r.x * 0.031645;
+		vp = (0.5 * (th11 + th12) + 1.570796) + r.x * ((0.5 * (th12 + th13) + 1.570796) - (0.5 * (th11 + th12) + 1.570796));
+		src = vec2(3843.827786, 1645.188900) + r.x * vec2(-17.614076, -61.705425) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th13), sin(th13));
+	r = segCoord(q, A, D, N13, N14, vec4(203.035372, 203.035372, 203.035372, 203.035372)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.263436 + r.x * 0.030531;
+		vp = (0.5 * (th12 + th13) + 1.570796) + r.x * ((0.5 * (th13 + th14) + 1.570796) - (0.5 * (th12 + th13) + 1.570796));
+		src = vec2(3826.213709, 1583.483474) + r.x * vec2(-15.802168, -62.194105) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th14), sin(th14));
+	r = segCoord(q, A, D, N14, N15, vec4(203.035372, 171.622737, 203.035372, 171.622737)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.232906 + r.x * 0.035389;
+		vp = (0.5 * (th13 + th14) + 1.570796) + r.x * ((0.5 * (th14 + th15) + 1.570796) - (0.5 * (th13 + th14) + 1.570796));
+		src = vec2(3810.411541, 1521.289370) + r.x * vec2(-13.815773, -62.665298) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th15), sin(th15));
+	r = segCoord(q, A, D, N15, N16, vec4(171.622737, 157.081042, 171.622737, 157.081042)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.197517 + r.x * 0.042430;
+		vp = (0.5 * (th14 + th15) + 1.570796) + r.x * ((0.5 * (th15 + th16) + 1.570796) - (0.5 * (th14 + th15) + 1.570796));
+		src = vec2(3796.595768, 1458.624072) + r.x * vec2(-11.364345, -63.155893) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th16), sin(th16));
+	r = segCoord(q, A, D, N16, N17, vec4(157.081042, 157.169406, 157.081042, 157.169406)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.155086 + r.x * 0.049091;
+		vp = (0.5 * (th15 + th16) + 1.570796) + r.x * ((0.5 * (th16 + th17) + 1.570796) - (0.5 * (th15 + th16) + 1.570796));
+		src = vec2(3785.231424, 1395.468179) + r.x * vec2(-8.454599, -63.610808) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th17), sin(th17));
+	r = segCoord(q, A, D, N17, N18, vec4(157.169406, 157.169406, 157.169406, 157.169406)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.105995 + r.x * 0.023817;
+		vp = (0.5 * (th16 + th17) + 1.570796) + r.x * ((0.5 * (th17 + th18) + 1.570796) - (0.5 * (th16 + th17) + 1.570796));
+		src = vec2(3776.776825, 1331.857370) + r.x * vec2(-5.118803, -63.965718) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th18), sin(th18));
+	r = segCoord(q, A, D, N18, N19, vec4(157.169406, 224.724933, 157.169406, 224.724933)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.082179 + r.x * -0.095400;
+		vp = (0.5 * (th17 + th18) + 1.570796) + r.x * ((0.5 * (th18 + th19) + 1.570796) - (0.5 * (th17 + th18) + 1.570796));
+		src = vec2(3771.658021, 1267.891653) + r.x * vec2(-5.416145, -63.941227) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th19), sin(th19));
+	r = segCoord(q, A, D, N19, N20, vec4(224.724933, 224.724933, 224.724933, 224.724933)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.177578 + r.x * 0.031260;
+		vp = (0.5 * (th18 + th19) + 1.570796) + r.x * ((0.5 * (th19 + th20) + 1.570796) - (0.5 * (th18 + th19) + 1.570796));
+		src = vec2(3766.241876, 1203.950425) + r.x * vec2(-17.156629, -61.834175) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th20), sin(th20));
+	r = segCoord(q, A, D, N20, N21, vec4(224.724933, 213.173536, 224.724933, 213.173536)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.146319 + r.x * 0.128837;
+		vp = (0.5 * (th19 + th20) + 1.570796) + r.x * ((0.5 * (th20 + th21) + 1.570796) - (0.5 * (th19 + th20) + 1.570796));
+		src = vec2(3749.085247, 1142.116250) + r.x * vec2(-1.410607, -64.154699) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th21), sin(th21));
+	r = segCoord(q, A, D, N21, N22, vec4(213.173536, 195.622844, 213.173536, 195.622844)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.017482 + r.x * -0.109468;
+		vp = (0.5 * (th20 + th21) + 1.570796) + r.x * ((0.5 * (th21 + th22) + 1.570796) - (0.5 * (th20 + th21) + 1.570796));
+		src = vec2(3747.674640, 1077.961551) + r.x * vec2(-0.832877, -64.164799) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th22), sin(th22));
+	r = segCoord(q, A, D, N22, N23, vec4(195.622844, 157.973681, 195.622844, 157.973681)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.126950 + r.x * -0.110992;
+		vp = (0.5 * (th21 + th22) + 1.570796) + r.x * ((0.5 * (th22 + th23) + 1.570796) - (0.5 * (th21 + th22) + 1.570796));
+		src = vec2(3746.841763, 1013.796752) + r.x * vec2(-15.310805, -62.316887) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th23), sin(th23));
+	r = segCoord(q, A, D, N23, N24, vec4(157.973681, 137.615823, 157.973681, 137.615823)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.237942 + r.x * 0.064062;
+		vp = (0.5 * (th22 + th23) + 1.570796) + r.x * ((0.5 * (th23 + th24) + 1.570796) - (0.5 * (th22 + th23) + 1.570796));
+		src = vec2(3731.530957, 951.479865) + r.x * vec2(-14.939305, -62.406990) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th24), sin(th24));
+	r = segCoord(q, A, D, N24, N25, vec4(137.615823, 138.098296, 137.615823, 138.098296)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.173880 + r.x * 0.214083;
+		vp = (0.5 * (th23 + th24) + 1.570796) + r.x * ((0.5 * (th24 + th25) + 1.570796) - (0.5 * (th23 + th24) + 1.570796));
+		src = vec2(3716.591653, 889.072875) + r.x * vec2(-7.222879, -63.762412) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th25), sin(th25));
+	r = segCoord(q, A, D, N25, N26, vec4(138.098296, 150.926908, 138.098296, 150.926908)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = 0.040203 + r.x * 0.113133;
+		vp = (0.5 * (th24 + th25) + 1.570796) + r.x * ((0.5 * (th25 + th26) + 1.570796) - (0.5 * (th24 + th25) + 1.570796));
+		src = vec2(3709.368774, 825.310463) + r.x * vec2(12.320873, -62.976275) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th26), sin(th26));
+	r = segCoord(q, A, D, N26, N27, vec4(150.926908, 152.340834, 150.926908, 152.340834)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = 0.153336 + r.x * -0.141764;
+		vp = (0.5 * (th25 + th26) + 1.570796) + r.x * ((0.5 * (th26 + th27) + 1.570796) - (0.5 * (th25 + th26) + 1.570796));
+		src = vec2(3721.689647, 762.334188) + r.x * vec2(7.265752, -63.757541) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th27), sin(th27));
+	r = segCoord(q, A, D, N27, N28, vec4(152.340834, 152.273835, 152.340834, 152.273835)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = 0.011572 + r.x * -0.122239;
+		vp = (0.5 * (th26 + th27) + 1.570796) + r.x * ((0.5 * (th27 + th28) + 1.570796) - (0.5 * (th26 + th27) + 1.570796));
+		src = vec2(3728.955398, 698.576647) + r.x * vec2(-5.788315, -63.908611) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th28), sin(th28));
+	r = segCoord(q, A, D, N28, N29, vec4(152.273835, 146.489525, 152.273835, 146.489525)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.110667 + r.x * -0.038821;
+		vp = (0.5 * (th27 + th28) + 1.570796) + r.x * ((0.5 * (th28 + th29) + 1.570796) - (0.5 * (th27 + th28) + 1.570796));
+		src = vec2(3723.167084, 634.668036) + r.x * vec2(-8.382847, -63.620304) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th29), sin(th29));
+	r = segCoord(q, A, D, N29, N30, vec4(146.489525, 137.045551, 146.489525, 137.045551)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.149488 + r.x * -0.040063;
+		vp = (0.5 * (th28 + th29) + 1.570796) + r.x * ((0.5 * (th29 + th30) + 1.570796) - (0.5 * (th28 + th29) + 1.570796));
+		src = vec2(3714.784236, 571.047732) + r.x * vec2(-10.727893, -63.267112) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th30), sin(th30));
+	r = segCoord(q, A, D, N30, N31, vec4(137.045551, 121.173756, 137.045551, 121.173756)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.189551 + r.x * -0.051007;
+		vp = (0.5 * (th29 + th30) + 1.570796) + r.x * ((0.5 * (th30 + th31) + 1.570796) - (0.5 * (th29 + th30) + 1.570796));
+		src = vec2(3704.056343, 507.780620) + r.x * vec2(-13.448162, -62.745216) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	D = 64.170205 * vec2(cos(th31), sin(th31));
+	r = segCoord(q, A, D, N31, N32, vec4(121.173756, 105.274308, 121.173756, 105.274308)).xyz;
+	if (r.z > 0.5 && abs(r.y) < abs(bestN))
+	{
+		bestN = r.y;
+		arm = 1.0;
+		vs = -0.240559 + r.x * -0.029423;
+		vp = (0.5 * (th30 + th31) + 1.570796) + r.x * ((th31 + 1.570796) - (0.5 * (th30 + th31) + 1.570796));
+		src = vec2(3690.608181, 445.035404) + r.x * vec2(-17.115103, -61.845682) + r.y * vec2(cos(vs), sin(vs));
+		turn = vs - vp;
+	}
+	A += D;
+	if (arm > 0.5 && !armRegion(src))
+	{
+		arm = 0.0;
+	}
+	rot = vec4(cos(turn), sin(turn), 0.0, 0.0);
+	return vec4(src, arm, 0.0);
+}
+
+// x = h: arm material (rest band, head side narrowed); y: the head-side fade past it
+vec2 armRestBand(vec2 x)
+{
+	float hard = 0.0;
+	float soft = 0.0;
+	vec4 h = vec4(0.0, 0.0, 0.0, 0.0);
+	if (armRegion(x))
+	{
+		h = segCoord(x, vec2(4372.772689, 2088.224597), vec2(-63.904385, -5.834791), vec2(0.090927, -0.995858), vec2(0.155853, -0.987780), vec4(159.848374, 170.524615, 159.848374, 170.524615));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(4308.868304, 2082.389806), vec2(-62.596413, -14.124598), vec2(0.155853, -0.987780), vec2(0.279750, -0.960073), vec4(170.524615, 194.896554, 170.524615, 194.896554));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(4246.271891, 2068.265208), vec2(-60.385985, -21.710551), vec2(0.279750, -0.960073), vec2(0.288316, -0.957535), vec4(194.896554, 212.671917, 194.896554, 212.671917));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(4185.885906, 2046.554658), vec2(-62.334071, -15.240696), vec2(0.288316, -0.957535), vec2(0.149413, -0.988775), vec4(212.671917, 213.989310, 212.671917, 213.989310));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(4123.551835, 2031.313962), vec2(-64.054142, -3.857720), vec2(0.149413, -0.988775), vec2(0.311782, -0.950154), vec4(213.989310, 235.481601, 213.989310, 235.481601));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(4059.497693, 2027.456242), vec2(-53.886593, -34.843224), vec2(0.311782, -0.950154), vec2(0.699255, -0.714872), vec4(235.481601, 235.481601, 235.481601, 235.481601));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(4005.611100, 1992.613019), vec2(-36.024755, -53.103975), vec2(0.699255, -0.714872), vec2(0.850646, -0.525739), vec4(235.481601, 211.342935, 235.481601, 197.680207));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3969.586344, 1939.509043), vec2(-31.387899, -55.969769), vec2(0.850646, -0.525739), vec2(0.887288, -0.461216), vec4(211.342935, 204.975115, 197.680207, 167.482286));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3938.198446, 1883.539275), vec2(-27.774913, -57.847812), vec2(0.887288, -0.461216), vec2(0.912219, -0.409703), vec4(204.975115, 204.975115, 167.482286, 154.359796));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3910.423532, 1825.691463), vec2(-24.789393, -59.188691), vec2(0.912219, -0.409703), vec2(0.930826, -0.365462), vec4(204.975115, 199.555196, 154.359796, 153.657432));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3885.634140, 1766.502771), vec2(-22.102236, -60.243724), vec2(0.930826, -0.365462), vec2(0.945435, -0.325809), vec4(199.555196, 178.936381, 153.657432, 140.435892));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3863.531904, 1706.259047), vec2(-19.704118, -61.070147), vec2(0.945435, -0.325809), vec2(0.956779, -0.290817), vec4(178.936381, 166.180650, 140.435892, 108.997204));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3843.827786, 1645.188900), vec2(-17.614076, -61.705425), vec2(0.956779, -0.290817), vec2(0.965501, -0.260400), vec4(166.180650, 203.035372, 108.997204, 104.240901));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3826.213709, 1583.483474), vec2(-15.802168, -62.194105), vec2(0.965501, -0.260400), vec2(0.973000, -0.230806), vec4(203.035372, 203.035372, 104.240901, 104.240901));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3810.411541, 1521.289370), vec2(-13.815773, -62.665298), vec2(0.973000, -0.230806), vec2(0.980557, -0.196235), vec4(203.035372, 171.622737, 104.240901, 106.377866));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3796.595768, 1458.624072), vec2(-11.364345, -63.155893), vec2(0.980557, -0.196235), vec2(0.987998, -0.154465), vec4(171.622737, 157.081042, 106.377866, 106.556081));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3785.231424, 1395.468179), vec2(-8.454599, -63.610808), vec2(0.987998, -0.154465), vec2(0.994388, -0.105797), vec4(157.081042, 157.169406, 106.556081, 107.148389));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3776.776825, 1331.857370), vec2(-5.118803, -63.965718), vec2(0.994388, -0.105797), vec2(0.996625, -0.082086), vec4(157.169406, 157.169406, 107.148389, 107.148389));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3771.658021, 1267.891653), vec2(-5.416145, -63.941227), vec2(0.996625, -0.082086), vec2(0.984274, -0.176647), vec4(157.169406, 224.724933, 107.148389, 176.862296));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3766.241876, 1203.950425), vec2(-17.156629, -61.834175), vec2(0.984274, -0.176647), vec2(0.989314, -0.145797), vec4(224.724933, 224.724933, 176.862296, 176.862296));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3749.085247, 1142.116250), vec2(-1.410607, -64.154699), vec2(0.989314, -0.145797), vec2(0.999847, -0.017481), vec4(224.724933, 213.173536, 176.862296, 176.862296));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3747.674640, 1077.961551), vec2(-0.832877, -64.164799), vec2(0.999847, -0.017481), vec2(0.991953, -0.126609), vec4(213.173536, 195.622844, 176.862296, 153.535180));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3746.841763, 1013.796752), vec2(-15.310805, -62.316887), vec2(0.991953, -0.126609), vec2(0.971825, -0.235703), vec4(195.622844, 157.973681, 153.535180, 118.514253));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3731.530957, 951.479865), vec2(-14.939305, -62.406990), vec2(0.971825, -0.235703), vec2(0.984921, -0.173005), vec4(157.973681, 137.615823, 118.514253, 93.008463));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3716.591653, 889.072875), vec2(-7.222879, -63.762412), vec2(0.984921, -0.173005), vec2(0.999192, 0.040192), vec4(137.615823, 138.098296, 93.008463, 81.583744));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3709.368774, 825.310463), vec2(12.320873, -62.976275), vec2(0.999192, 0.040192), vec2(0.988267, 0.152736), vec4(138.098296, 150.926908, 81.583744, 69.975872));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3721.689647, 762.334188), vec2(7.265752, -63.757541), vec2(0.988267, 0.152736), vec2(0.999933, 0.011572), vec4(150.926908, 152.340834, 69.975872, 48.042164));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3728.955398, 698.576647), vec2(-5.788315, -63.908611), vec2(0.999933, 0.011572), vec2(0.993883, -0.110441), vec4(152.340834, 152.273835, 48.042164, 30.000000));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3723.167084, 634.668036), vec2(-8.382847, -63.620304), vec2(0.993883, -0.110441), vec2(0.988847, -0.148932), vec4(152.273835, 146.489525, 30.000000, 30.000000));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3714.784236, 571.047732), vec2(-10.727893, -63.267112), vec2(0.988847, -0.148932), vec2(0.982089, -0.188418), vec4(146.489525, 137.045551, 30.000000, 30.000000));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3704.056343, 507.780620), vec2(-13.448162, -62.745216), vec2(0.982089, -0.188418), vec2(0.971205, -0.238245), vec4(137.045551, 121.173756, 30.000000, 33.512306));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+		h = segCoord(x, vec2(3690.608181, 445.035404), vec2(-17.115103, -61.845682), vec2(0.971205, -0.238245), vec2(0.963776, -0.266714), vec4(121.173756, 105.274308, 33.512306, 33.512306));
+		hard = max(hard, h.z);
+		soft = max(soft, h.w);
+	}
+	return vec2(hard, soft);
+}
+#endif
+
 // ---- WE shake (rigs): no noise, friction 1 1, bounds 0 1, direction centre, time-offset map ----
 float rigWave(float speed, float phase01)
 {
@@ -304,7 +1023,7 @@ vec2 opHair(vec2 p)
 	if (inBox(p, BOX_HAIR))
 	{
 		vec4 a = texSample2D(g_Texture1, p);
-		p += rigWave(HAIR_SPEED, a.b) * HAIR_AMP2 * flowOf(a.rg);
+		p += rigWave(HAIR_SPEED, a.b) * HAIR_AMP2 * (1.0 + BRISTLE * g_Loud) * flowOf(a.rg);
 	}
 #endif
 	return p;
@@ -319,13 +1038,9 @@ vec2 opTail(vec2 p)
 		vec4 b = texSample2D(g_Texture2, p);
 		float sway = sin(TAIL_SPEED * g_Time + phase) * 0.996;
 		float f = clamp(g_Follow, -1.0, 1.0);
-		float fd = clamp(g_FollowDown, 0.0, 1.0);
-		// follow field: one shape, 16 bits over b (hi) and a (lo); linear filtering commutes with
-		// this. Lean = f * shape along x, drop = fd * shape along y (TAIL_DROP_AMP2 = followdrop x
-		// the lean amplitude, in v units)
+		// follow field: x only, 16 bits over b (hi) and a (lo); linear filtering commutes with this
 		float fx = (dot(b.ba, vec2(65280.0, 255.0)) - 32640.0) / 32640.0;
-		p += sway * (1.0 - max(abs(f), fd)) * TAIL_AMP2 * flowOf(b.rg)
-			- fx * vec2(f * TAIL_FOLLOW_AMP2, fd * TAIL_DROP_AMP2);
+		p += sway * (1.0 - abs(f)) * TAIL_AMP2 * flowOf(b.rg) - f * TAIL_FOLLOW_AMP2 * vec2(fx, 0.0);
 	}
 #endif
 	return p;
@@ -348,11 +1063,85 @@ vec2 opBelly(vec2 p)
 #if R_BELLY
 	if (inBox(p, BOX_BELLY))
 	{
+		vec2 p0 = p;
 		float phase = texSample2D(g_Texture3, p).a;
-		vec2 flow = texSample2D(g_Texture4, p).rg;
-		p += rigWave(BELLY_SPEED, phase) * BELLY_AMP2 * flowOf(flow);
+		vec2 fl = flowOf(texSample2D(g_Texture4, p).rg);
+		// breathing (doubled) + bass heave: the same outward field, the heave without the wave
+		p += (rigWave(BELLY_SPEED, phase) * BREATH_GAIN + HEAVE_GAIN * g_Bass) * BELLY_AMP2 * fl;
+		// muscle ripple: stripe tensor T from the fitted field, slide by T * RIP_DIR (no stripe sign needed)
+		float m = smoothstep(0.0, 0.3 * RIP_FLOWMAX, length(fl));
+		if (m > 0.0)
+		{
+			vec2 u = (p0 - RIP_CENTER) * ARM_PX / RIP_SCALE;
+			vec4 q1 = vec4(1.0, u.x, u.y, u.x * u.x);
+			vec3 q2 = vec3(u.x * u.y, u.y * u.y, u.x * u.x * u.x);
+			vec3 q3 = vec3(u.x * u.x * u.y, u.x * u.y * u.y, u.y * u.y * u.y);
+			vec2 cs2 = vec2(dot(RIP_C0, q1) + dot(RIP_C1, q2) + dot(RIP_C2, q3),
+				dot(RIP_S0, q1) + dot(RIP_S1, q2) + dot(RIP_S2, q3));
+			vec2 n = cs2 / max(length(cs2), 0.5);
+			vec2 tg = 0.5 * (RIP_DIR + vec2(n.x * RIP_DIR.x + n.y * RIP_DIR.y, n.y * RIP_DIR.x - n.x * RIP_DIR.y));
+			float ph = RIP_K * dot(p0 * ARM_PX, RIP_DIR) - RIP_W * g_Time;
+			p += m * RIP_AMP * (1.0 + 0.5 * g_Loud) * sin(ph) * tg / ARM_PX;
+		}
 	}
 #endif
+	return p;
+}
+
+// Weight shift: a slow lean of the whole body about its pinned bottom-right corner.
+vec2 opLean(vec2 p)
+{
+#if R_HB
+	vec2 d = p * ARM_PX - LEAN_PIVOT;
+	float a = LEAN_ANGLE * sin(LEAN_SPEED * g_Time);
+	vec2 r = rot2(d, vec2(cos(a), -sin(a))) - d;
+	r.x *= smoothstep(0.0, LEAN_FADE, -d.x);
+	r.y *= smoothstep(0.0, LEAN_FADE, -d.y);
+	p += r / ARM_PX;
+#endif
+	return p;
+}
+
+// Jaw snap: the lower jaw (mouth line .. neck, chin tendrils included) turns about its hinge. Wide
+// feathers (80 px) at the snout tip and the neck keep the ink strain at the 1.15 overshoot <= 0.56
+// (a 15 px feather tore the tendril roots: numpy mirror, 2026-11-09).
+vec2 opJaw(vec2 p)
+{
+#if R_FACE
+	if (g_Jaw > 0.001)
+	{
+		vec2 x = p * ARM_PX;
+		vec2 d = x - JAW_HINGE;
+		float side = max(smoothstep(-40.0, 40.0, dot(x - JAW_MOUTH_A, JAW_MOUTH_N)), smoothstep(1295.0, 1375.0, x.y));
+		float m = side * smoothstep(4445.0, 4365.0, x.x) * smoothstep(1035.0, 1085.0, x.y)
+			* smoothstep(580.0, 520.0, length(d)) * smoothstep(3990.0, 4030.0, x.x);
+		if (m > 0.0)
+		{
+			float a = -JAW_OPEN * g_Jaw * m;
+			p = (JAW_HINGE + rot2(d, vec2(cos(a), sin(a)))) / ARM_PX;
+		}
+	}
+#endif
+	return p;
+}
+
+vec2 lookUv(float px)
+{
+	return vec2(g_LookX, g_LookY) * px / ARM_PX;
+}
+
+// Eye look + blink, last in the forward chain of a spin eye: undone before the spin.
+vec2 eyeMod(vec2 p, vec2 c, float rpx, float lookPx, float blink)
+{
+	vec2 d = (p - c) * ARM_PX;
+	float r2 = dot(d, d) / (rpx * rpx);
+	if (r2 < 1.0)
+	{
+		float prof = (1.0 - r2) * (1.0 - r2);
+		d -= vec2(g_LookX, g_LookY) * lookPx * prof;
+		d.y /= 1.0 - BLINK_SQUASH * blink;
+		p = c + d / ARM_PX;
+	}
 	return p;
 }
 
@@ -453,6 +1242,8 @@ vec2 opWaves(vec2 p, float mask)
 // Rigs (applied in reverse: Face, Belly, Head & Body, Tail, Hair).
 vec2 walkRigs(vec2 p)
 {
+	p = opLean(p);
+	p = opJaw(p);
 	p = opFace(p);
 	p = opBelly(p);
 	p = opHeadBody(p);
@@ -489,25 +1280,32 @@ vec2 walkMid(vec2 p, ANIM_PARAMS)
 	p = opTwirl(p, W1_CENTER, W1_AXIS, W1_RATIO, W1_SIZE, W1_FEATHER, aMisc.x);
 #endif
 #if E_I2 && LAYOUT != 2
-	if (inBox(p, BOX_I2)) p = opIris(p, texSample2D(g_Texture6, p).g, aIris.zw);
+	if (inBox(p, BOX_I2)) p = opIris(p, texSample2D(g_Texture6, p).g, aIris.zw - lookUv(LOOK_IRIS));
 #endif
 #if E_F1
-	if (inBox(p, BOX_F1)) p = opFoliage(p, texSample2D(g_Texture6, p).b, F1_NSCALE, F1_NDIR, F1_DIR, F1_AMP0, F1_PHASE, F1_SPEED, F1_POWER);
+	if (inBox(p, BOX_F1))
+	{
+		float gm = texSample2D(g_Texture6, p).b;
+		p = BLUR_CENTER + (p - BLUR_CENTER) * (1.0 - GILL_FLARE * g_Loud * gm);   // gills flare when loud
+		p = opFoliage(p, gm, F1_NSCALE, F1_NDIR, F1_DIR, F1_AMP0, F1_PHASE, F1_SPEED, F1_POWER);
+	}
 #endif
 #if E_I1
-	if (inBox(p, BOX_I1)) p = opIris(p, texSample2D(g_Texture6, p).r, aIris.xy);
+	if (inBox(p, BOX_I1)) p = opIris(p, texSample2D(g_Texture6, p).r, aIris.xy - lookUv(LOOK_IRIS));
 #endif
 	return p;
 }
 
 // A spin step on the (pA, pB, w) pair: colour = mix(X(pA), X(pB), w).
 void spinStep(inout vec2 pA, inout vec2 pB, inout float w, inout float split,
-	vec2 center, vec2 axis, float ratio, float size, float feather, vec2 spin)
+	vec2 center, vec2 axis, float ratio, float size, float feather, vec2 spin, vec2 eye)
 {
 	float m = spinMask(pA, center, axis, ratio, size, feather);
 	if (m > 0.0)
 	{
-		vec2 q = spinPoint(pA, center, axis, ratio, spin);
+		// look + blink (eye.x = look px, eye.y = blink), then the spin where the point still is in the disc
+		vec2 e = eyeMod(pA, center, size * ARM_PX.y, eye.x, eye.y);
+		vec2 q = mix(e, spinPoint(e, center, axis, ratio, spin), spinMask(e, center, axis, ratio, size, feather));
 		if (m >= 1.0)
 		{
 			pA = q;
@@ -528,7 +1326,8 @@ void spinStep(inout vec2 pA, inout vec2 pB, inout float w, inout float split,
 		float mb = spinMask(pB, center, axis, ratio, size, feather);
 		if (mb > 0.0)
 		{
-			pB = mix(pB, spinPoint(pB, center, axis, ratio, spin), mb);
+			vec2 eb = eyeMod(pB, center, size * ARM_PX.y, eye.x, eye.y);
+			pB = mix(pB, mix(eb, spinPoint(eb, center, axis, ratio, spin), spinMask(eb, center, axis, ratio, size, feather)), mb);
 		}
 	}
 }
@@ -554,10 +1353,10 @@ vec4 readTex(vec2 p, ANIM_PARAMS)
 vec4 walkEarly(vec2 pA, vec2 pB, float w, float split, ANIM_PARAMS)
 {
 #if E_S2
-	spinStep(pA, pB, w, split, S2_CENTER, S2_AXIS, S2_RATIO, S2_SIZE, S2_FEATHER, aSpin12.zw);
+	spinStep(pA, pB, w, split, S2_CENTER, S2_AXIS, S2_RATIO, S2_SIZE, S2_FEATHER, aSpin12.zw, vec2(LOOK_BIG, g_Blink));
 #endif
 #if E_S1
-	spinStep(pA, pB, w, split, S1_CENTER, S1_AXIS, S1_RATIO, S1_SIZE, S1_FEATHER, aSpin12.xy);
+	spinStep(pA, pB, w, split, S1_CENTER, S1_AXIS, S1_RATIO, S1_SIZE, S1_FEATHER, aSpin12.xy, vec2(LOOK_BIG, g_Blink));
 #endif
 	vec4 c = readTex(pA, ANIM_ARGS);
 	if (split > 0.5)
@@ -576,10 +1375,10 @@ vec4 chain(vec2 p, ANIM_PARAMS)
 	float w = 0.0;
 	float split = 0.0;
 #if E_S4
-	spinStep(p, pB, w, split, S4_CENTER, S4_AXIS, S4_RATIO, S4_SIZE, S4_FEATHER, aSpin34.zw);
+	spinStep(p, pB, w, split, S4_CENTER, S4_AXIS, S4_RATIO, S4_SIZE, S4_FEATHER, aSpin34.zw, vec2(LOOK_SMALL, 0.0));
 #endif
 #if E_S3
-	spinStep(p, pB, w, split, S3_CENTER, S3_AXIS, S3_RATIO, S3_SIZE, S3_FEATHER, aSpin34.xy);
+	spinStep(p, pB, w, split, S3_CENTER, S3_AXIS, S3_RATIO, S3_SIZE, S3_FEATHER, aSpin34.xy, vec2(LOOK_SMALL, 0.0));
 #endif
 	p = walkMid(p, ANIM_ARGS);
 	if (split > 0.5)
@@ -599,7 +1398,7 @@ vec4 preBlur(vec2 q, ANIM_PARAMS)
 
 vec4 kPre(vec2 p, ANIM_PARAMS)
 {
-	if (inBox(p, BOX_I2)) p = opIris(p, texSample2D(g_Texture6, p).g, aIris.zw);
+	if (inBox(p, BOX_I2)) p = opIris(p, texSample2D(g_Texture6, p).g, aIris.zw - lookUv(LOOK_IRIS));
 	vec4 c = preBlur(p, ANIM_ARGS);
 	if (inBox(p, BOX_BLUR))
 	{
@@ -624,6 +1423,8 @@ vec4 kPre(vec2 p, ANIM_PARAMS)
 
 void main() {
 	vec2 uv = v_TexCoord.zw;                         // full uv of this output pixel
+	// colour split: on beats a colour layer drifts further from K along its own offset (and scale)
+	uv -= g_Beat * SPLIT_GAIN * (g_Split.xy + g_Split.z * (uv - vec2(0.5, 0.5)));
 	vec4 aSpin12 = v_Spin12;
 	vec4 aSpin34 = v_Spin34;
 	vec4 aIris = v_Iris;
@@ -648,9 +1449,59 @@ void main() {
 	{
 		vec2 uvR = LENS_CENTER + base * (1.0 + (LENS_K + LENS_CA) * len2);
 		vec2 uvB = LENS_CENTER + base * (1.0 + (LENS_K - LENS_CA) * len2);
-		c = chain(uvG, ANIM_ARGS);
-		c.r = chain(uvR, ANIM_ARGS).r;
-		c.b = chain(uvB, ANIM_ARGS).b;
+		bool posed = false;
+		// the rest of the layer: pre-arm sink, then the joint fan around the arm's base
+		vec2 rG = uvG;
+		if (g_ArmPose > 0.0005)
+		{
+			vec2 q = uvG * ARM_PX;
+			float w = armBelow(q);
+			rG = armFan(armSink(q, g_ArmPose, w), g_ArmPose, w) / ARM_PX;
+		}
+		vec2 rR = rG + (uvR - uvG);
+		vec2 rB = rG + (uvB - uvG);
+#if R_TAIL
+		if (g_ArmPose > 0.0005 && inBox(uvG, ARM_BOX))
+		{
+			// the arm (moved) over the rest of the layer (with the arm's old place emptied)
+			posed = true;
+			vec4 rot = CAST4(0.0);
+			vec4 pz = armPose(uvG * ARM_PX, rG * ARM_PX, g_ArmPose, rot);   // xy = arm source px, z = in the posed band
+			// The band tests run on the points the chain really reads, after the rigs (mouse lean, sway):
+			// the old place hides exactly the arm texture it would show, and the moved arm shows only arm
+			// texture. Testing the unwarped points left a ghost of the tip mid-reach (lean pushed it out of
+			// the narrow head-side band, 2026-11-09 recording).
+			vec2 hb = armRestBand(walkRigs(rG) * ARM_PX);
+			float hide = max(hb.x, hb.y * min(1.0, g_ArmPose / 0.2));
+			vec4 rest = CAST4(0.0);
+			if (hide < 0.999)
+			{
+				rest = chain(rG, ANIM_ARGS);
+				rest.r = chain(rR, ANIM_ARGS).r;
+				rest.b = chain(rB, ANIM_ARGS).b;
+				rest.a *= 1.0 - hide;   // the old arm's place: hidden, fading back in on the head side
+			}
+			c = rest;
+			if (pz.z > 0.5 && armRestBand(walkRigs(pz.xy / ARM_PX) * ARM_PX).x > 0.5)
+			{
+				// chromatic aberration offsets turn with the arm
+				vec2 sp = pz.xy / ARM_PX;
+				vec2 dR = rot2((uvR - uvG) * ARM_PX, rot.xy) / ARM_PX;
+				vec2 dB = rot2((uvB - uvG) * ARM_PX, rot.xy) / ARM_PX;
+				vec4 arm = chain(sp, ANIM_ARGS);
+				arm.r = chain(sp + dR, ANIM_ARGS).r;
+				arm.b = chain(sp + dB, ANIM_ARGS).b;
+				float o = arm.a + rest.a * (1.0 - arm.a);
+				c = vec4((arm.rgb * arm.a + rest.rgb * rest.a * (1.0 - arm.a)) / max(o, 0.00001), o);
+			}
+		}
+#endif
+		if (!posed)
+		{
+			c = chain(rG, ANIM_ARGS);
+			c.r = chain(rR, ANIM_ARGS).r;
+			c.b = chain(rB, ANIM_ARGS).b;
+		}
 		c.a *= clip;
 	}
 #endif

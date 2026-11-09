@@ -10,20 +10,29 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
 - **The creature**: hair, tendrils, tail, head, body, belly and face are driven by painted motion
   rigs (flow + time maps). The eyes spin and wander, the gills sway, the eyelids blink, and a
   lens + chromatic aberration pass sits on top.
-- **The arm follows the mouse**: the whole spike next to the head, from the coil it grows out of
-  to the tip, leans toward the cursor (up to 150 px at the tip on the 5040-wide art) on a slightly
-  springy curve. When the cursor is below the tip it also lowers (up to 120 px), so with the
-  cursor on the mandala's centre the tail points at it like a record needle.
+- **The creature is alive**: it breathes (twice the old depth), a slow ripple runs along the torso
+  muscles following their stripes, and the whole body shifts its weight in a 20 s sway. Its eyes
+  follow the cursor and the big ones blink every few seconds, sometimes twice.
+- **The arm follows the mouse**: only the cursor's horizontal position counts. Moving it toward
+  the mandala makes the arm reach. The arm swings from its junction like a hinge, keeping its
+  length; the abdomen next to the junction fans open, and the curve before the arm sinks under the
+  body's edge. Nothing above the line from the body's lower corner to the arm moves. The arm also
+  leans toward the cursor on a slightly springy curve.
 - **Smoke**: light black smoke (Wallpaper Engine's own smoke sprites) rises from both screen edges,
   behind the creature on its side and mirrored on the other, drifts slightly inward and fades out
   around two-thirds of the height.
 - **Music**: the magenta and cyan ink layers pulse with the audio. Five blue bands across the chest
-  and tail light up one frequency band each, and an extra cyan layer reacts to the bass.
+  and tail light up one frequency band each, and an extra cyan layer reacts to the bass. The
+  creature reacts too: the chest heaves with the bass, the jaw snaps open on hard hits and puffs
+  a little black smoke, the gills flare and the hair bristles when it is loud, and the colour
+  layers split apart on beats.
 - **Spectrum mandala** (the 13-fold Choronzon mandala behind the creature) turns slowly and
   breathes when there is no sound. With music it splits into 13 pieces, one per frequency band,
   and adds a bass swell, datamosh frames and beat glitches. Optionally its spin follows the song's
   tempo: the script detects the BPM live (onset autocorrelation, 70–160 BPM) and turns the wheel
-  one piece every N beats.
+  one piece every N beats. In its centre sits an eye of its own: an almond with spiked double lids,
+  a ringed iris that turns with the spin and a slit pupil that widens with the bass. It follows the
+  cursor and blinks.
 
 ## User properties
 | Property | Default |
@@ -37,6 +46,8 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
 | Mandala datamosh noise (on/off) + Datamosh strength (%, 0–300) | on, 100 |
 | Mandala spin follows BPM (on/off) + Beats per piece (1–16, 13 pieces per turn) | off, 4 |
 | Smoke behind the creature (on/off, both edges) + Smoke opacity (%, 0–200) | on, 100 |
+| Creature reacts to music (on/off: jaw, heave, gills, hair, colour split, mouth smoke) | on |
+| Eye in the mandala's centre (on/off, off removes it completely) + Mandala eye opacity (%) | on, 35 |
 
 ## Install
 Copy `wallpaper/` into `steamapps/common/wallpaper_engine/projects/myprojects/<any name>/` and
@@ -71,7 +82,7 @@ The repo is a complete copy of the project: everything the current pipeline read
 | `backups/2026-11-07_before_optimize/project/` | **The optimiser's source**: the scene before the performance pass, with full textures and every motion mask. Effect changes go here, then `optimize_creature.py` rebuilds `wallpaper/` |
 | `recovered_original/` | The art layers and the original masks as lossless PNG |
 | `rig/` | The motion maps as editable PNGs, plus reports and previews |
-| `mock/` | Still mocks shown before building (the edge smoke) and the script that drew them |
+| `mock/` | Still mocks shown before building (edge smoke, arm reach) and the scripts that drew them; `arm_slide_stroke.npz` is read by `tools/arm_pose.py` |
 | `Choronzon_mandala_black.png`, `mandala_canvas.png` | Mandala sources |
 | `docs/` | Working notes: how the rig, the mandala, the optimization and the arm follow were built and verified |
 
@@ -99,8 +110,11 @@ change made in the WE editor on `wallpaper/` (layers, effects, particles) lasts 
 next run. For lasting changes, edit the source project (it opens in the WE editor too), then run
 the optimiser. `project.json` (user properties, title, preview) is not rebuilt; the glitch
 and BPM-spin properties come from `scripts/add_mandala_properties.py`, the smoke layer and its two
-properties from `scripts/add_edge_smoke.py`. The mandala's controller script is
-`scripts/mandala_controller.js`, injected by the optimiser. `scene.pkg` is the package Wallpaper
+properties from `scripts/add_edge_smoke.py`, the mouth smoke and the music/eye properties from
+`scripts/add_living_creature.py` (run order: `add_edge_smoke.py`, `add_living_creature.py`,
+`optimize_creature.py`). The mandala's controller script is `scripts/mandala_controller.js` and
+the creature's per-frame values (breath, jaw, blinks, look) come from `scripts/creature_driver.js`,
+both injected by the optimiser. `scene.pkg` is the package Wallpaper
 Engine writes when you publish; it is not kept in the repo.
 
 ## Credits

@@ -41,6 +41,8 @@ sys.path.insert(0, str(HERE / "scripts"))
 sys.path.insert(0, str(HERE / "tools"))
 from add_mandalas import PROJ, write_tex  # noqa: E402
 from tex_io import read_tex, read_tex_levels, write_dxt5_rgba_tex, write_dxt5_tex, write_raw_tex  # noqa: E402
+import arm_pose  # noqa: E402
+import torso_ripple  # noqa: E402
 
 SRC = HERE / "backups" / "2026-11-07_before_optimize" / "project"
 WORK = HERE / "optimized"
@@ -49,6 +51,15 @@ FX = "creature_warp"
 TW, TH = 5040, 2160                      # full layer size (all creature layers share it)
 ASPECT = TW / TH
 TAIL_FOLLOW_JS = (HERE / "scripts" / "tail_follow.js").read_text(encoding="utf-8")
+DRIVER_JS = (HERE / "scripts" / "creature_driver.js").read_text(encoding="utf-8")
+
+
+def frag_define(name):
+    """A number #defined in the shader template (the living-creature constants live there)."""
+    import re
+    m = re.search(rf"^#define {name} (-?[0-9.]+)", (SHADER_SRC / "creature_warp.frag.in").read_text(encoding="utf-8"), re.M)
+    assert m, name
+    return float(m.group(1))
 
 LAYOUT = {"RIG": 0, "CSTACK": 1, "KPRE": 2, "KPOST": 3, "CBCHEST": 4, "CBTAIL2": 5, "CBTAIL": 6}
 LAYER_LAYOUT = {"Shadow": "RIG", "W": "RIG", "C": "CSTACK", "M": "CSTACK", "C2": "CSTACK",
@@ -128,8 +139,6 @@ def constants(V, boxes, lens):
     d(f"#define TAIL_SPEED {f(t.get('speed', 1.04))}")
     d(f"#define TAIL_AMP2 {f(float(t.get('strength', 0.074)) ** 2)}")
     d(f"#define TAIL_FOLLOW_AMP2 {f(float(t.get('followstrength', 0.108)) ** 2)}")
-    # arm drop: the same field along y, followdrop x the lean, converted to v units
-    d(f"#define TAIL_DROP_AMP2 {f(float(t.get('followstrength', 0.108)) ** 2 * float(t.get('followdrop', 0)) * TW / TH)}")
 
     def spin(tag, name):
         cv = V[name]["cv"]
@@ -338,14 +347,24 @@ def max_warp_px(V, fm):
     parts = {
         "hair": c("Rig: Hair & Tendrils", "strength") ** 2 * fm["hair"] * TW,
         "tail": (float(t.get("strength", 0.074)) ** 2 * fm["tail"]
-                 + float(t.get("followstrength", 0.108)) ** 2 * fm["follow"]
-                 * (1 + float(t.get("followdrop", 0)))) * TW,
+                 + float(t.get("followstrength", 0.108)) ** 2 * fm["follow"]) * TW,
         "head-body": c("Rig: Head & Body", "strength") ** 2 * fm["hb"] * TW,
         "belly": c("Rig: Belly", "strength") ** 2 * fm["belly"] * TW,
         "face": c("Rig: Face", "strength") ** 2 * fm["face"] * TW,
         "balance": c("Balance (General)", "strength") ** 2 * fm["bal"] * TW,
         "shimmer": c("Tail edge shimmer", "strength") ** 2 * TW,
         "blur": 5.21 * c("Guelras (2)", "scale") * 0.025 * TW,
+        # living creature (shader template constants): the belly grows to BREATH_GAIN + HEAVE_GAIN
+        # times its field, the ripple (x1.5 when loud), the lean about the bottom-right corner (the
+        # creature reaches ~3000 px from it), the jaw (580 px reach), the eyes' look, and the colour
+        # split (M: 15 px offset + 1 % scale at 2520 px from the centre, x SPLIT_GAIN)
+        "belly x gain": (frag_define("BREATH_GAIN") + frag_define("HEAVE_GAIN") - 1)
+        * c("Rig: Belly", "strength") ** 2 * fm["belly"] * TW,
+        "ripple": frag_define("RIP_AMP") * 1.5,
+        "lean": frag_define("LEAN_ANGLE") * 3000,
+        "jaw": abs(frag_define("JAW_OPEN")) * 1.15 * 580,
+        "look": frag_define("LOOK_BIG"),
+        "split": frag_define("SPLIT_GAIN") * (15 + 0.01 * 2520),
     }
     for n in ("Guelras", "Strings Hair", "Strings Back"):
         a = ASPECT * c(n, "ratio")
@@ -384,7 +403,7 @@ def lens_point(u, v, lens, k):
     return cx + bx * (1 + k * l2), cy + by * (1 + k * l2), l2
 
 
-def crops_and_supports(scene, lens, reach_px, circles):
+def crops_and_supports(scene, lens, reach_px, circles, pose_sweep=None):
     S = 4                                            # support grid: 1260 x 540
     gw, gh = TW // S, TH // S
     ca_px = 0.0
@@ -415,6 +434,8 @@ def crops_and_supports(scene, lens, reach_px, circles):
             if blk[sl].any():
                 blk[sl] = True
         sup = nd.binary_dilation(blk, structure=np.ones((3, 3), bool), iterations=dil)
+        if pose_sweep is not None:                         # every pose: the dropped abdomen, the moved arm
+            sup = arm_pose.pose_support(pose_sweep[0], sup, arm_too=tex in pose_sweep[1])
         supports[tex] = sup
         # texture area any sample can reach: support + warp + CA
         big = nd.binary_dilation(sup, structure=np.ones((3, 3), bool), iterations=int(math.ceil(ca_px / S)) + 2)
@@ -437,9 +458,9 @@ def crops_and_supports(scene, lens, reach_px, circles):
 
 # ---------------------------------------------------------------- 5. effect + scene
 
-def install_effect(consts):
+def install_effect(consts, arm_glsl):
     for ext in ("frag", "vert"):
-        text = (SHADER_SRC / f"{FX}.{ext}.in").read_text(encoding="utf-8").replace("@@CONSTANTS@@", consts)
+        text = (SHADER_SRC / f"{FX}.{ext}.in").read_text(encoding="utf-8").replace("@@CONSTANTS@@", consts).replace("@@ARMPOSE@@", arm_glsl)
         (PROJ / "shaders" / "effects" / f"{FX}.{ext}").write_text(text, encoding="utf-8", newline="\n")
     (PROJ / "materials" / "effects" / f"{FX}.json").write_text(json.dumps(
         {"passes": [{"shader": f"effects/{FX}", "blending": "normal", "depthtest": "disabled",
@@ -463,7 +484,12 @@ def main():
     lens = lens_params(V)
     packs, boxes, fm = build_packs(V)
     reach = max_warp_px(V, fm)
-    tex_alpha, supports, rects, ca_px = crops_and_supports(scene, lens, reach, spin_circles(V))
+    # arm pose (needle): the arm's every pose must stay inside the support and the crop
+    pose_P = arm_pose.load()
+    pose_out, pose_box = arm_pose.sweep(pose_P, 4)
+    tail_tex = {layer_texture(o) for o in scene["objects"] if o["name"] in CREATURE
+                and any(e.get("name") == "Rig: Tail" for e in o.get("effects", []))}
+    tex_alpha, supports, rects, ca_px = crops_and_supports(scene, lens, reach, spin_circles(V), (pose_out, tail_tex))
     print(f"max warp {reach:.0f} px, chromatic aberration reach {ca_px:.0f} px")
 
     # support textures
@@ -486,7 +512,11 @@ def main():
         print(f"  {tex:28} crop {r}  {(r[2]-r[0])*(r[3]-r[1]) / (TW*TH) * 100:5.1f}% of the layer, {fmt}")
 
     consts = constants(V, boxes, lens)
-    install_effect(consts)
+    consts += ("\n#define ARM_PX vec2(5040.0, 2160.0)"
+               f"\n#define ARM_BOX vec4({pose_box[0]:.6f}, {pose_box[1]:.6f}, {pose_box[2]:.6f}, {pose_box[3]:.6f})"
+               + arm_pose.consts(pose_P)
+               + "\n" + "\n".join(torso_ripple.consts()))
+    install_effect(consts, arm_pose.glsl(pose_P))
 
     ids = []
 
@@ -507,12 +537,23 @@ def main():
         return next_id[0] - 1
 
     k_rect = rects[layer_texture(by_name["K"])]
-    k_cx, k_cy = (k_rect[0] + k_rect[2]) / 2, (k_rect[1] + k_rect[3]) / 2
-    assert "const TEX_CX = 2520;" in TAIL_FOLLOW_JS and "const TEX_CY = 1080;" in TAIL_FOLLOW_JS
-    follow_js = (TAIL_FOLLOW_JS.replace("const TEX_CX = 2520;", f"const TEX_CX = {k_cx:g};")
-                 .replace("const TEX_CY = 1080;", f"const TEX_CY = {k_cy:g};"))
-    assert "const AXIS = 0;" in follow_js, "tail_follow.js has no AXIS constant"
-    follow_down_js = follow_js.replace("const AXIS = 0;", "const AXIS = 1;")
+    k_cx = (k_rect[0] + k_rect[2]) / 2
+    follow_js = TAIL_FOLLOW_JS.replace("const TEX_CX = 2520;", f"const TEX_CX = {k_cx:g};")
+    assert follow_js != TAIL_FOLLOW_JS or k_cx == 2520, "tail_follow.js has no TEX_CX constant"
+    assert "const OUT = 0;" in follow_js, "tail_follow.js has no OUT constant"
+    pose_js = follow_js.replace("const OUT = 0;", "const OUT = 1;")
+    k_cy = (k_rect[1] + k_rect[3]) / 2
+    driver_js = DRIVER_JS.replace("const TEX_CX = 2520;", f"const TEX_CX = {k_cx:g};").replace(
+        "const TEX_CY = 1080;", f"const TEX_CY = {k_cy:g};")
+    assert "const TEX_CY" in DRIVER_JS and "const TEX_CX" in DRIVER_JS
+    # colour split on beats: each layer's authored offset (and scale) from K, in full uv
+    k_org = nums(by_name["K"]["origin"])
+    split = {}
+    for name in CREATURE:
+        o = by_name[name]
+        ox, oy = nums(o["origin"])[:2]
+        sc = nums(o["scale"])[0] if o.get("scale") else 1.0
+        split[name] = f"{(ox - k_org[0]) / TW:.8f} {-(oy - k_org[1]) / TH:.8f} {sc - 1:.6f} 0"
 
     def uber(layer, layout):
         o = by_name[layer]
@@ -530,7 +571,14 @@ def main():
             fol = dict(tail["passes"][0]["constantshadervalues"]["follow"])
             fol["script"] = follow_js
             cv["follow"] = fol
-            cv["followdown"] = {"script": follow_down_js, "value": 0.0}     # arm drop (cursor below the tip)
+        if layout != "KPRE":
+            cv["armpose"] = {"script": pose_js, "value": 0.0}       # arm reach (cursor far sideways); drops every layer
+        # living creature: per-frame music / cursor values (scripts/creature_driver.js sets them on
+        # every pass; the one copy of the script runs on K's second pass, bound to its "bass")
+        for n in ("loud", "beat", "jaw", "blink", "lookx", "looky"):
+            cv[n] = 0.0
+        cv["bass"] = {"script": driver_js, "value": 0.0} if layout == "KPOST" else 0.0
+        cv["split"] = split[layer] if layout in ("RIG", "CSTACK", "CBCHEST", "CBTAIL2", "CBTAIL") else "0 0 0 0"
         if any(e.get("file", "").endswith("motionblur/effect.json") for e in o["effects"]):
             cv["alphamax"] = 1.0          # the motion blur's 8-bit buffer capped the pulsed alpha
         sup = f"{MASKS}cw_support_{k}"
@@ -655,6 +703,13 @@ def optimize_mandala(scene):
     o["alpha"]["script"] = (HERE / "scripts" / "mandala_controller.js").read_text(encoding="utf-8")
     # spin angle set by that script (tempo-following spin); 0 = the shader's own g_Time spin
     fx["passes"][0].setdefault("constantshadervalues", {}).update({"spinphase": 0.0, "spinscripted": 0.0})
+    # the centre eye: on/off (user property `mandalaeye`), look and blink are all set by the
+    # controller script, so switching it off also stops the script's eye work; opacity is bound
+    # straight to `mandalaeyeopacity` (both properties: scripts/add_living_creature.py)
+    fx["passes"][0]["constantshadervalues"].update({
+        "eye": 1.0,
+        "eyeopacity": {"user": "mandalaeyeopacity", "value": 35.0},
+        "eyelookx": 0.0, "eyelooky": 0.0, "eyeblink": 0.0})
     frag =(SHADER_SRC / "mandala_spectrum.frag").read_text(encoding="utf-8")
     out = (frag.replace("0.0).a * inside", "0.0).r * inside")
                .replace("lod).a * step(", "lod).r * step(")

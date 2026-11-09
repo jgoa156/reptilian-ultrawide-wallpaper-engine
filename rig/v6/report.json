@@ -5,9 +5,5 @@
  "margin_px": 20,
  "ink_strain": 0.164,
  "max_compression": 0.566,
- "followstrength": 0.175,
- "drop_px": 120.0,
- "followdrop": 0.8,
- "drop_ink_strain": 0.21,
- "drop_min_det": 0.337
+ "followstrength": 0.175
 }

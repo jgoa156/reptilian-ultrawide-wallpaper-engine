@@ -5,7 +5,8 @@ chest zone found by tools/motion_coverage.py: x 4270-5040, y 1040-2160).
     blurred (sigma 70 px) so it fades over ~200 px into the neighbouring motion
   * direction: breathing, radially out from the chest centre C, linear inside R0 so the centre
     doesn't pinch
-  * time offset: a ripple along the coil (phase grows with x - y), so it slithers instead of pumping
+  * time offset: a ripple along the coil (phase grows with x - y, one ramp across the zone that never
+    wraps), so it slithers instead of pumping
   * amplitude: the largest peak whose worst strain (phase gradient included, like rig2.py) is
     <= TARGET (0.15, headroom for the overlap with the other rigs)
 
@@ -31,7 +32,6 @@ TW, TH, F, GW, GH = mc.TW, mc.TH, mc.F, mc.GW, mc.GH
 MW, MH = 1720, 720
 CENTER = (4700.0, 1620.0)
 R0 = 450.0
-RIPPLE = 1.0 / 1400.0          # cycles per px along (x - y)
 
 
 def write_tex(path, pixels, fmt):
@@ -74,6 +74,11 @@ def still_zone():
     return sil & ~((disp >= 1.5) | binary), sil
 
 
+def time_span(s, m, eps=0.002):
+    """(lo, hi) of s (= x - y) over the moving zone (mask m > eps): the time ramp runs once across it"""
+    return float(s[m > eps].min()), float(s[m > eps].max())
+
+
 def strain(dx, dy, ph, sx, sy):
     g = lambda a, ax, s: np.gradient(a, axis=ax) / s
     jd = np.sqrt(g(dx, 1, sx) ** 2 + g(dx, 0, sy) ** 2 + g(dy, 1, sx) ** 2 + g(dy, 0, sy) ** 2)
@@ -98,8 +103,12 @@ def main():
     r = np.hypot(rx, ry)
     k = 1.0 / np.maximum(r, R0)
     ux, uy = rx * k, ry * k                                   # |u| = r/R0 inside R0, 1 outside
-    phase = np.mod((X - Y) * RIPPLE, 1.0)
-    ph_rad = (X - Y) * RIPPLE * 2 * math.pi                   # unwrapped, for the strain check
+    # one ramp over the moving zone, never wrapping: an 8-bit time map that wraps (255 -> 0) is filtered
+    # into a straight seam (rule 6). np.mod((X - Y) * RIPPLE) did, at x - y = 2800 through the lower body
+    # (thin light line, user's recording 2026-11-09).
+    lo, hi = time_span(X - Y, m)
+    phase = np.clip((X - Y - lo) / (hi - lo), 0, 1) * 0.98
+    ph_rad = phase * 2 * math.pi                              # for the strain check
 
     st1 = strain(m * ux, m * uy, ph_rad, F, F).max()          # strain per px of amplitude
     A = a.target / st1

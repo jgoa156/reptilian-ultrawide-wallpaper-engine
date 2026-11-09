@@ -1,6 +1,6 @@
 # Handoff: Reptilian animation rig (and what's next)
 
-Status as of 2026-11-07. The animation work is **paused on purpose**.
+Status as of 2026-11-07. **2026-11-09: §19 (arm reach + fixes) and §20 (living creature, mandala eye with an on/off switch) are verified in WE, committed and pushed. Nothing is in progress; read §20 first for the current state.**
 
 The tasks in "Next" are written down only. None have been started. The live scene is
 in a state the user approved ("looks right"), with a wavier hair update applied on top.
@@ -782,7 +782,9 @@ MandalaK alpha script, so that file is the one to edit (the source project's cop
   the real controller in Node and fails if the spin jumps). On 6 songs it held within ~2% of the
   whole-song reference after the first 15-30 s, at 60 fps, 30 fps and 30 Hz audio at 60/144 fps.
 
-## 17. Arm drops toward the cursor (2026-11-07, verified in WE)
+## 17. Arm drops toward the cursor (2026-11-07, verified in WE) — REVERTED 2026-11-08, see §19
+The user rejected the global drop ("the abdomen shouldn't really stretch down"). The drop and the
+needle-on-mandala trigger are gone from the working copy (not yet committed); §19 replaces them.
 User: the arm should also move down while following, so the tail can point at the mandala's centre
 (a record needle).
 - No new texture (slots 0-9 are full): the drop reuses §14's bend shape along y. In `opTail`,
@@ -815,3 +817,173 @@ straight-edged block beside the tail); the real smoke is a layer behind the crea
   -5..75, i.e. inward from the opposite edge) at authored (990, -180), right after "Smoke". The layout
   script's FAR list pins it bottom-left of the visible rect with the creature's scale s. Same material,
   same `edgesmoke` / `smokeopacity` bindings as "Smoke".
+
+## 19. Arm reach: hinge + joint fan + pre-arm sink (2026-11-08, verified in WE, pushed 2026-11-09)
+Committed and pushed on 2026-11-09 together with §20 and the §17 revert (the commit after `cf64404`).
+
+### What the user asked for (in order, all still in force)
+1. The arm follows **only horizontal** mouse movement. Moving far right (toward the mandala) makes it
+   reach. No arm stretching/sliding (rejected), no needle-on-mandala trigger (rejected).
+2. Shape "B: hinge" (`mock/arm_junction_mock.png`): the arm swings from its junction, keeping its length.
+3. The junction "opens like an actual arm junction": the abdomen next to it fans out, it does NOT
+   stretch down (global drop rejected, §17 reverted).
+4. The pre-arm arc points DOWN, option "sink under edge" (`mock/arm_prearm_dip.png`).
+5. "A full calibration to make sure it does not distort the arm too much and the rigging is well
+   applied on those junctions" -> `tools/arm_calibrate.py`.
+6. Last message (screenshot with a red line from the body's lower corner up across the U toward the
+   arm): "its unecessary to stretch anything above that red line, focus on the arm movement".
+   Nothing above that line may move. That line is `LINE` in `tools/arm_pose.py` (texture px).
+
+### How it works (`tools/arm_pose.py` is the reference; docstring has the full description)
+- Arm = 32-segment skeleton (seglen 64.17) from the joint J = (4373, 2088) to the spike tip. Pose a
+  (0..1) turns segment i by `a*HINGE*(1-TAPER*i/31)*(BASE_FRAC+(1-BASE_FRAC)*smooth(i/RAMP))` around
+  the base: the bend is spread over the arm's root, the tip lags. Pixel -> (segment, t, n) on the posed
+  skeleton -> same (s, n) on the rest skeleton.
+- Joint fan: the rest of the layer rotates around J by `-turn*s(psi)*fr(r)*w`; psi = angle from the
+  coil direction, s = smoothstep(psi/lim) with lim = +-90deg + turn (s^1, not s^3: s^3 spiked stretch to
+  4.24), fr fades out between FAN_R1 200 and FAN_R2 560 px.
+- Sink: `q - (0, a*SINK*w*g)`, base_dst = base_src + (0, SINK). g fades horizontally (full up to
+  SINK_X1 4420, none past SINK_X2 4900); w = line mask = smoothstep(signed distance below LINE / FADE).
+- Rest source of an output q: w = below(q); undo sink(q, w); undo fan(., w). Both use w at the OUTPUT q.
+  Rest pixels inside the rest arm band ∩ armRegion (at that source) are hidden.
+- Current constants: HINGE -42deg, TAPER 0.6, BASE_FRAC 0.55, RAMP 5, FAN 200/560, SINK 70,
+  SINK_X 4420/4900, LINE (5035,2107)-(3990,1553), FADE 140.
+- Trigger, `scripts/tail_follow.js`: tip x from layer K, dir toward MandalaK; `d = (cursorX-tipX)*dir/w`,
+  reach goal = clamp((d - P_START 0.08)/(P_FULL 0.32 - 0.08), 0, 1) * amount, spring-damped; OUT 1
+  returns smoothstep(pose) into the `armpose` user value; the lean is multiplied by (1 - pose).
+- `scripts/optimize_creature.py`: `armpose` combo value on every layout except KPRE (CB_Chest too),
+  supports grown over a pose sweep (`arm_pose.pose_support`), defines from `arm_pose.consts(P)`.
+
+### Calibration (latest, Python reference with the line mask)
+`python -I tools/arm_calibrate.py` -> `rig/v7/arm_calibration.png` (mirrored like WE; seams red,
+stretch > 1.25 yellow, > 1.5 orange; overview on top, junction close-up at full res below).
+- All poses: seams 0; above the line: rest moves 0.0000 px.
+- Pose 1: arm p50 1.066 / p99 1.127 / max 1.29; rest p99 1.383 / max 1.44. Pose 0.75: arm max 1.22,
+  rest max 1.36.
+
+### State: reference and live are OUT OF SYNC
+- **Live WE (built 2026-11-08 22:02)** has the PREVIOUS version: hinge + fan + Y-ramp sink
+  (ARM_SINK 110, ARM_SINK_X (4523, 5040), ARM_SINK_Y (1250, 1950)), no line mask. The user has seen
+  this one; it moves things above the red line.
+- **`tools/arm_pose.py`** has the line-mask version (above). `consts()` already emits ARM_SINK,
+  ARM_LINE_P, ARM_LINE_N, ARM_FADE but NOT the sink x range yet.
+- **`scripts/shader/creature_warp.frag.in`** still has the old armSink (ARM_SINK_X / ARM_SINK_Y) and an
+  armFan without w. Building now would fail (ARM_SINK_X/Y undefined).
+
+### 2026-11-09: steps 1-4 DONE, live rebuilt with the line-mask version
+- `consts()` emits ARM_SINK_X; shader has `armBelow`, `armSink(q, a, w)`, `armFan(q, a, w)`.
+- Calibration unchanged from the numbers above (seams 0, above the line 0.0000 px).
+- `optimize_creature.py` rebuilt live (2026-11-09).
+- WebGL parity vs `pose_map` (64x64 grid, poses 0.25..1): rest <= 0.004 px, arm <= 0.141 px, 1-3 of
+  4096 arm/hide flags flip at region edges. Full-shader WebGL compile: error set identical to the
+  previous WE-verified shader (WebGL-only strictness: int*float, undefined R_* combos), so nothing new.
+  Harness generator: session scratchpad `mkharness.py` (gone next session; rebuild from this note).
+- Seen in WE (2026-11-09): log clean; user: "the animation looks good for now".
+- **Fix: whiter gap by the jaw.** The hidden rest-arm band (ink + 70 px both sides) erased the head's own
+  drop shadow in the head-arm gap, up to a straight cut at region()'s x = 3950. The arm casts its shadow
+  AWAY from the head (n < 0), so the head side (n > 0) now uses `hw_in` = measured K|W ink + MARGIN_IN 30
+  (> the ~27 px tail sway, so no old-arm slivers), then the hide fades out over FEATHER_IN 30 px (ramped
+  in over pose 0..0.2, no pop). Joint vertices < 6 keep the full band (ramp to 9). Applies to both the
+  hide and the posed arm's band (else the moved arm would carry a strip of head shadow).
+  `arm_pose.head_side_limits`, `hide_weight`; shader `segCoord(..., vec4 h)` returns (t, n, ok, soft),
+  `rest.a *= 1 - pz.w`. Calibration unchanged; old-arm K ink left visible 0 px at poses 0.4 / 1;
+  gap row profile now 201 209 215 220 222 (was 209 -> 222 cut). WebGL parity: same numbers, hide weight
+  4-7/4096 points > 0.05 off at band edges; no new compile errors. Live rebuilt.
+- **Fix 2 (user recording 2026-11-09 03:16): ghost of the spike tip** at its rest spot when the arm
+  leaves/returns. The band tests ran on pre-rig points, but the chain draws after the rigs (mouse lean up
+  to ~150 px x (1 - pose), sway ~27 px), so mid-reach the leaned rest tip left the narrow head-side band.
+  Now the tests run on what the chain really reads: `hide` = `armRestBand(walkRigs(rG))` (hard + fade),
+  moved arm drawn only if `armRestBand(walkRigs(src)).x` (material); the moved arm is FOUND through the
+  full band (hw both sides). `armRestBand` is generated by `arm_pose.glsl`; reference `pose_map` arm =
+  wide posed band & narrow material band at src (rigs still). optimize_creature is now ~12 min.
+  WebGL caught a 5-component `vec4(src, arm, 0, 0)` before WE did: always run the compile diff.
+- **Fix 3: thin straight light line through the lower body (45 deg, texture (4770,1987)-(4872,2095)),
+  present at rest too, older than §19.** `Rig: Belly` time map wrapped (`np.mod((X-Y)/1400, 1)`, step
+  190/255 at x - y = 2800; rule 6). `tools/belly_field.py` now ramps once across the moving zone
+  (`time_span`); the source project's `masks/rig5_belly_time.tex` was rewritten from the existing flow
+  map's footprint only (scratch fix_belly_time.py; flow/amplitude/strength unchanged; backup in
+  `backups/2026-11-09_before_belly_time_fix/`). Max step now 1/255; the ripple is ~half as fast across
+  the body (wave ~2700 px). NOTE: belly_field.py itself writes to the LIVE project and reads the live
+  scene for its still zone: do not re-run it against the optimised live scene.
+- **Fix 4: teeth gaps read as bright white slots.** They are the creature's only 8 enclosed holes
+  (x 4139-4271, y 1066-1285; background shows through) and `add_shadow.py` filled holes, so no shadow
+  fell in them. Now holes stay open (edge pixels still forced solid as before): only the mouth changes
+  (30 px elsewhere, max 27/255). Written to the source project's `materials/Shadow.tex` only (scratch
+  shadow_teeth.py); backup `backups/2026-11-09_before_teeth_shadow/`. Live rebuilt.
+- **Torso motion today** (source scene, peak per rig): torso x >= 4300, y 800-2160: median 6 px, p90 10 px
+  (Head & Body 2-7, Belly 4-9); hair/head median 12, p90 35. Belly runs at strain 0.15 of 0.3.
+  motion_coverage.py needs `load_mask` -> tex_io.read_tex and PROJ -> the source project now.
+- **Waiting on:** user re-selects the wallpaper (tip ghost, body line, jaw gap, teeth), picks torso/next
+  effects, then step 6.
+- FPS: WE's own cap is `"fps": 30` in wallpaper_engine/config.json (GPU ~4 % idle at 30); not a GPU limit.
+
+### Next steps (original list)
+1. `consts()`: add `#define ARM_SINK_X vec2(sink_x[0], sink_x[1])`.
+2. Shader:
+   ```glsl
+   float armBelow(vec2 q) { return smoothstep(0.0, 1.0, dot(q - ARM_LINE_P, ARM_LINE_N) / ARM_FADE); }
+   vec2 armSink(vec2 q, float a, float w) {
+       float g = 1.0 - smoothstep(ARM_SINK_X.x, ARM_SINK_X.y, q.x);
+       return q - vec2(0.0, a * ARM_SINK * w * g);
+   }
+   ```
+   armFan gets a `float w` parameter and `th = -turn * s * fr * w`. In main:
+   `vec2 q = uvG * ARM_PX; float w = armBelow(q); rG = armFan(armSink(q, a, w), a, w) / ARM_PX;`
+   (rR/rB stay rG + (uvR - uvG) etc.; the posed block's `armPose(uvG*ARM_PX, rG*ARM_PX, ...)` is unchanged).
+3. `python -I tools/arm_pose.py`, `python -I tools/arm_calibrate.py`, `python -I scripts/optimize_creature.py`
+   (rebuilds live, ~2 min).
+4. GPU checks (scratchpad harness `glsltest/`: index.html, frag.txt, ref.json; WebGL2, RGBA32F target,
+   64x64 grid over box [3300, 1300, 4950, 2160]): compile test, then parity vs a ref.json regenerated
+   from the current `pose_map`. Last passing parity (previous version): rest <= 0.007 px, arm <= 0.13 px.
+   The scratchpad is session-only; rebuild the harness if it's gone.
+5. User re-selects the wallpaper in WE. Then check `D:\steam\steamapps\common\wallpaper_engine\log.txt`
+   (`grep -a`) for shader errors: WebGL does NOT catch HLSL-only errors.
+6. After "looks right, push it": README (arm reach: horizontal trigger, hinge, joint fan, sink, line
+   limit; drop and needle gone), this handoff, `python -I tools/export_repo.py` (include
+   `mock/arm_slide_stroke.npz`, which arm_pose.py reads; consider adding .npz to the export mock
+   filter), commit (includes the §17 revert) and push.
+
+### Gotchas learned this round
+- WE compiles GLSL to HLSL ps_5_0: no 2-argument `atan` (it gave the red "error loading texture"
+  block). Use `acos(dot)` plus a cross-product sign; ARM_COIL is a vec2.
+- Tuning history: root-chain Hermite folded (dropped); global drop stretched the body (rejected);
+  sink Y-ramp stretched the abdomen wall to 4.2; the line-mask fade band alone gave 3.16, fixed by the
+  sink's horizontal fade + spreading the bend over the root (BASE_FRAC, RAMP).
+- Bash heredoc patch scripts turn `\n` into real newlines; edit f-strings with `\n` by hand.
+
+## 20. Living creature (2026-11-09, verified in WE, pushed)
+Seen in WE 2026-11-09: log clean, user: "Looks right, push it". The mandala eye's on/off switch was
+added on the same day (below).
+User: "all ideas are good ... proceed with everything you suggested and yes double the breathing"; the
+mandala-centre eye last (own procedural eye, not the Tool venue). Step 6 of §19 (push) waits for
+"looks right, push it" and now covers this too.
+
+All per-frame values come from ONE script, `scripts/creature_driver.js`, bound to "bass" of
+K's "Creature warp (KPOST)"; it sets the others on every creature pass with
+`getEffect('Creature warp (LAYOUT)').setMaterialProperty` (like the mandala controller).
+New float uniforms: bass, loud, beat, jaw, blink, lookx, looky; per-layer constant `split`
+(layer offset xy + scale-1 from K, full uv; from the source scene in `uber()`).
+Tuning constants are `#define`s at the top of `creature_warp.frag.in` (after @@CONSTANTS@@).
+
+| Effect | Where | Notes |
+|---|---|---|
+| Breathing x2 | opBelly, BREATH_GAIN 2 | rigcheck combined 0.302 -> 0.319 (chest corner, HB-driven) |
+| Bass heave | opBelly, + HEAVE_GAIN 0.3 x bass, no wave | peak 2.3x belly: ~0.34 briefly |
+| Muscle ripple | opBelly, RIP_* | `tools/torso_ripple.py`: stripe orientation from K's structure tensor, cubic fit (20 consts), slide T*g (stripe tensor x fixed down-right dir, no sign ambiguity); 3 px (x1.5 loud), 420 px wavelength; strain 0.13 max |
+| Weight shift | opLean in walkRigs | 0.016 rad about (5040,2160), 20 s; x fades at right edge, y at bottom (320 px); 25 px at head, strain 0.145 |
+| Jaw snap | opJaw in walkRigs (R_FACE) | hinge (4400,1065), mouth line + below-snout band + neck/top/radius limits, 80 px feathers; 0.05 rad; ink strain 0.56 at the 1.15 overshoot (15 px feathers tore the tendril roots) |
+| Eyes look | eyeMod in spinStep (S1-S4) + iris offsets I1/I2 | 6 / 3 / 4 px, profile (1-r2)^2 |
+| Big-eye blink | eyeMod (S1, S2) | vertical squash to 1/5; 2.5-7 s, 20 % double |
+| Gill flare | walkMid E_F1 | radial about BLUR_CENTER, 6 % x loud x guelras mask |
+| Hair bristle | opHair | +20 % x loud |
+| Colour split | main(), uv -= beat*1.5*(off + ds*(uv-0.5)) | M grows ~22 px + scale on hits |
+| Mouth smoke | layer MouthSmoke (after K) | `scripts/add_living_creature.py` + `scripts/mouth_smoke.js` (instance rate, reads `shared.creaturePuff`); in the layout GROUP |
+| Mandala eye | `mandala_spectrum.frag` eye() | almond window + halo, double lid + 13 spikes, ringed iris turning with the spin, slit pupil widening with bass, blink; look/blink from `mandala_controller.js` |
+
+User properties (add_living_creature.py): `creaturemusic`, `mandalaeye`, `mandalaeyeopacity` (35).
+`mandalaeye` is the eye's master switch. It is read by mandala_controller.js's applyUserProperties, which sets the shader's `eye` constant (left unbound in the scene). When it is off, the shader skips eye() and the script skips eyeUpdate(). Turning it off parks the eye centred and open.
+`max_warp_px` adds the new motions (crop/support margins), reading the template's #defines.
+Checks: WebGL strict compile of all 7 layouts OK (scratch mkfrag.py makes a strict variant: defined()
+for feature macros, int literals -> float); arm parity unchanged. Numpy mirror: scratch living_check.py.
+Backups: `backups/2026-11-09_before_living_creature/` (source scene.json, live project.json).
+Re-run order now: ... add_edge_smoke.py -> add_living_creature.py -> optimize_creature.py.

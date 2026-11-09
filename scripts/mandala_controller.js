@@ -59,7 +59,7 @@ function groupLevel(buf, g) {
 	return v / (GROUPS[g][1] - GROUPS[g][0] + 1);
 }
 
-let fx = null, tried = 0;
+let fx = null, mLayer = null, tried = 0;
 let presence = 0, fast = 0, slow = 0, favg = 0.02, hold = 0.05;
 let tickAcc = 0, mosh = 0, moshSeed = 0, moshErrors = 0;
 let efast = 0, eslow = 0, eavg = 0.02, epulse = 0, glitchUntil = 0, glitchCool = 0, glitchOn = false;
@@ -71,6 +71,7 @@ const MOSH_MAX = 0.3;               // datamosh opacity cap (was 1)
 // spin period, and the spin following the song's tempo (beats per piece, 13 pieces per turn)
 let uGlitchOn = true, uGlitchAmt = 1, uMoshOn = true, uMoshAmt = 1;
 let uPeriod = 39, uBpmSpin = false, uBeatsPerPiece = 4;
+let uEye = true;                    // the centre eye (`mandalaeye`); the shader's `eye` is set from here
 
 export function applyUserProperties(changed) {
 	if (changed.mandalaglitch !== undefined) uGlitchOn = !!changed.mandalaglitch;
@@ -80,6 +81,11 @@ export function applyUserProperties(changed) {
 	if (changed.spinperiod !== undefined) uPeriod = Math.max(changed.spinperiod, 0.1);
 	if (changed.mandalabpmspin !== undefined) uBpmSpin = !!changed.mandalabpmspin;
 	if (changed.mandalabeatsperpiece !== undefined) uBeatsPerPiece = Math.max(changed.mandalabeatsperpiece, 1);
+	if (changed.mandalaeye !== undefined) {
+		const on = !!changed.mandalaeye;
+		if (!on && uEye) eyeReset();
+		uEye = on;
+	}
 }
 
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -206,6 +212,53 @@ function spinUpdate(dt) {
 	set('spinscripted', 1);
 }
 
+const eyeX = { x: 0, v: 0 }, eyeY = { x: 0, v: 0 };
+let eyeBlinkAt = 5, eyeBlinkT = -1;
+function eyeSpring(s, goal, dt) {                     // omega 7, zeta 0.85: a calm, slightly lazy gaze
+	while (dt > 0) {
+		const h = Math.min(dt, 1 / 120);
+		s.v += (49 * (goal - s.x) - 2 * 0.85 * 7 * s.v) * h;
+		s.x += s.v * h;
+		dt -= h;
+	}
+}
+
+// the centre eye: iris toward the cursor (spring), a blink every 4..9 s
+function eyeUpdate(dt) {
+	if (mLayer) {
+		const cw = engine.canvasSize.x;
+		const cur = input.cursorWorldPosition;
+		let gx = 0, gy = 0;
+		if (cw > 0) {
+			gx = (cur.x - mLayer.origin.x) / (0.35 * cw);
+			gy = -(cur.y - mLayer.origin.y) / (0.35 * cw);         // the shader's y runs down
+			const L = Math.hypot(gx, gy);
+			if (L > 1) { gx /= L; gy /= L; }
+		}
+		eyeSpring(eyeX, gx, dt);
+		eyeSpring(eyeY, gy, dt);
+		set('eyelookx', clamp(eyeX.x, -1, 1));
+		set('eyelooky', clamp(eyeY.x, -1, 1));
+	}
+	if (eyeBlinkT < 0 && engine.runtime >= eyeBlinkAt) eyeBlinkT = 0;
+	let eb = 0;
+	if (eyeBlinkT >= 0) {
+		eyeBlinkT += dt;
+		const t = eyeBlinkT;
+		eb = t < 0.09 ? t / 0.09 : t < 0.14 ? 1 : t < 0.3 ? 1 - (t - 0.14) / 0.16 : 0;
+		if (t >= 0.3) { eyeBlinkT = -1; eyeBlinkAt = engine.runtime + 4 + Math.random() * 5; }
+	}
+	set('eyeblink', eb);
+}
+
+// switched off: park it centred and open, so it doesn't come back mid-blink or glancing away
+function eyeReset() {
+	eyeX.x = eyeX.v = eyeY.x = eyeY.v = 0;
+	eyeBlinkT = -1;
+	eyeBlinkAt = engine.runtime + 4 + Math.random() * 5;
+	if (fx) { set('eyelookx', 0); set('eyelooky', 0); set('eyeblink', 0); }
+}
+
 function set(name, v) {
 	try { fx.setMaterialProperty(name, v); } catch (e) { /* older WE: leave the shader defaults */ }
 }
@@ -219,6 +272,7 @@ export function update(value) {
 	if (!fx && engine.runtime > tried) {                  // retry once a second until the layer exists
 		tried = engine.runtime + 1;
 		const layer = thisScene.getLayer('MandalaK');
+		mLayer = layer;
 		try { fx = layer ? layer.getEffect(EFFECT) : null; } catch (e) { fx = null; }
 	}
 	if (!fx) {
@@ -286,6 +340,11 @@ export function update(value) {
 	const bv = smooth01(BOUNDS_LOW[0], BOUNDS_LOW[1], (audio.left[0] + audio.left[1] + audio.right[0] + audio.right[1]) * 0.25);
 	bassLv += (bv - bassLv) * (bv > bassLv ? rate(0.6) : rate(0.15));
 	set('bass', bassLv);
+
+	// ---- the centre eye (user property `mandalaeye`): off = the shader skips it entirely and none of
+	// this runs; it comes back centred and open
+	set('eye', uEye ? 1 : 0);
+	if (uEye) eyeUpdate(dt);
 
 	// ---- silence <-> music hand-over
 	const playing = all > 0.015 ? 1 : 0;

@@ -66,10 +66,42 @@ uniform float g_Time;
 uniform vec4 g_UvRect; // {"material":"uvrect","label":"Layer rect in full uv","default":"0 0 1 1"}
 uniform vec4 g_SupportSel; // {"material":"supportsel","label":"Support channel","default":"1 0 0 0"}
 uniform float g_Follow; // {"material":"follow","label":"Mouse follow (-1..1)","default":0,"range":[-1,1]}
-uniform float g_FollowDown; // {"material":"followdown","label":"Mouse follow, arm drop (0..1)","default":0,"range":[0,1]}
 uniform float g_AlphaMax; // {"material":"alphamax","label":"Alpha cap of the input","default":1000}
+uniform float g_ArmPose; // {"material":"armpose","label":"Arm pose: rest 0 .. needle 1","default":0,"range":[0,1]}
+// Set every frame by scripts/creature_driver.js (one copy, on K's second pass) on every layer.
+uniform float g_Bass; // {"material":"bass","label":"Bass level (0..1, smoothed)","default":0,"range":[0,1]}
+uniform float g_Loud; // {"material":"loud","label":"Loudness (0..1, slow)","default":0,"range":[0,1]}
+uniform float g_Beat; // {"material":"beat","label":"Beat pulse (0..1, decays)","default":0,"range":[0,1]}
+uniform float g_Jaw; // {"material":"jaw","label":"Jaw open (0..1)","default":0,"range":[-0.3,1.2]}
+uniform float g_Blink; // {"material":"blink","label":"Big eyes blink (0..1)","default":0,"range":[0,1]}
+uniform float g_LookX; // {"material":"lookx","label":"Eyes look x (layer uv, -1..1)","default":0,"range":[-1,1]}
+uniform float g_LookY; // {"material":"looky","label":"Eyes look y (layer uv, -1..1)","default":0,"range":[-1,1]}
+uniform vec4 g_Split; // {"material":"split","label":"Colour split on beats: offset xy, scale-1 (full uv)","default":"0 0 0 0"}
 
 @@CONSTANTS@@
+
+// ---- living creature (2026-11-09): music, cursor and idle motion on top of the rigs ----
+#define BREATH_GAIN 2.0          // belly breathing x2 in amplitude (user); combined strain 0.302 -> 0.319
+#define HEAVE_GAIN 0.3           // + bass x this: the belly field as a direct outward push
+#define RIP_AMP 3.0              // px: muscle ripple, stripes sliding along themselves (tools/torso_ripple.py)
+#define RIP_K 0.01496            // 2 pi / 420 px
+#define RIP_W 2.1                // rad/s (a crest every 3 s, rolling neck -> coil)
+#define RIP_DIR vec2(0.70710678, 0.70710678)
+#define LEAN_PIVOT vec2(5040.0, 2160.0)   // px: the body is pinned at the bottom-right corner
+#define LEAN_ANGLE 0.016         // rad: ~25 px at the head
+#define LEAN_SPEED 0.314         // rad/s: one slow sway every 20 s
+#define LEAN_FADE 320.0          // px: no sideways motion at the right edge, no vertical at the bottom
+#define BRISTLE 0.2              // hair amplitude + 20 % on loud passages
+#define JAW_HINGE vec2(4400.0, 1065.0)
+#define JAW_OPEN -0.05           // rad at g_Jaw 1 (negative = the chin swings away from the snout): ~25 px at the tendrils
+#define JAW_MOUTH_A vec2(4315.0, 1060.0)  // the mouth line (between the teeth rows)
+#define JAW_MOUTH_N vec2(0.88388, 0.46705) // its normal, toward the lower jaw
+#define LOOK_BIG 6.0             // px the big eyes' (Olhar, Olho) centres follow the cursor
+#define LOOK_SMALL 3.0           // px, Mini Eye 1, 2
+#define LOOK_IRIS 4.0            // px, Olho menor / Little Eyes
+#define BLINK_SQUASH 0.8         // big eyes close to a fifth of their height
+#define GILL_FLARE 0.06          // radial spread of the gills at full loudness
+#define SPLIT_GAIN 1.5           // colour layers' offset from K grows by this x the beat pulse
 
 #if LAYOUT == 0
 #define R_HAIR 1
@@ -165,6 +197,98 @@ vec2 flowOf(vec2 rg)
 	return (rg - vec2(0.498, 0.498)) * 2.0;
 }
 
+// ---- Arm reach (tools/arm_pose.py): the arm swings from its junction toward the mandala without
+// changing length, and the junction opens like a joint (the abdomen next to it fans out). 32-segment
+// skeleton; a pixel's (s, n) on the posed skeleton (vertex normals blended along each segment, so it
+// is continuous across joints) maps back to the same (s, n) on the rest skeleton. Work in layer px
+// (y down). ----
+
+// joint fan (all layouts, so every layer holding the abdomen opens with it): the rest source of
+// output point q (px). The layer turns around the joint ARM_J with the arm's first segment on the
+// arm's side of its base normal line, easing to no turn at the coil direction; faded out by radius.
+vec2 armFan(vec2 q, float a, float w)
+{
+	vec2 d = q - ARM_J;
+	float turn = a * ARM_TURN;
+	// angle from the coil direction (no two-argument atan: WE's HLSL path has none)
+	vec2 dn = d / max(length(d), 0.0001);
+	float psi = acos(clamp(dot(dn, ARM_COIL), -1.0, 1.0));
+	psi = (ARM_COIL.x * dn.y - ARM_COIL.y * dn.x < 0.0) ? -psi : psi;
+	float lim = (psi < 0.0 ? -1.57079633 : 1.57079633) + turn;
+	float s = smoothstep(0.0, 1.0, psi / lim);
+	float fr = 1.0 - smoothstep(ARM_FAN_R1, ARM_FAN_R2, length(d));
+	float th = -turn * s * fr * w;
+	return ARM_J + rot2(d, vec2(cos(th), sin(th)));
+}
+
+// line mask: 0 above the user's line (nothing there may move), 1 from ARM_FADE px below it
+float armBelow(vec2 q)
+{
+	return smoothstep(0.0, 1.0, dot(q - ARM_LINE_P, ARM_LINE_N) / ARM_FADE);
+}
+
+// pre-arm sink (all layouts): undo the sink of the joint and the coil around it, so the pre-arm's
+// arc points down under the screen edge; full around the joint, fading toward the body, and only
+// below the line (w = armBelow at the output point)
+vec2 armSink(vec2 q, float a, float w)
+{
+	float g = 1.0 - smoothstep(ARM_SINK_X.x, ARM_SINK_X.y, q.x);
+	return q - vec2(0.0, a * ARM_SINK * w * g);
+}
+
+#if R_TAIL
+float cross2(vec2 u, vec2 v)
+{
+	return u.x * v.y - u.y * v.x;
+}
+
+// q on segment (A, A + D) with vertex normals NA, NB: returns (t, n, ok, soft); ok = q is on this
+// segment's normal fan and inside the band, half-width h.x .. h.y away from the head (n < 0) and
+// h.z .. h.w on the head side (n > 0, the arm's ink + a small margin, so the head's shadow is kept);
+// soft = the head-side fade past that edge (used for hiding the old place only)
+vec4 segCoord(vec2 q, vec2 A, vec2 D, vec2 NA, vec2 NB, vec4 h)
+{
+	vec2 Q = q - A;
+	vec2 E = NB - NA;
+	float c2 = -cross2(D, E);
+	float c1 = cross2(Q, E) - cross2(D, NA);
+	float c0 = cross2(Q, NA);
+	float t = -1.0;
+	if (abs(c2) < 1e-6)
+	{
+		t = abs(c1) > 1e-9 ? -c0 / c1 : -1.0;
+	}
+	else
+	{
+		float dd = c1 * c1 - 4.0 * c2 * c0;
+		if (dd >= 0.0)
+		{
+			float sq = sqrt(dd);
+			float t1 = (-c1 - sq) / (2.0 * c2);
+			float t2 = (-c1 + sq) / (2.0 * c2);
+			t = (t1 >= 0.0 && t1 <= 1.0) ? t1 : t2;
+		}
+	}
+	if (t < 0.0 || t > 1.0)
+	{
+		return vec4(0.0, 1e9, 0.0, 0.0);
+	}
+	vec2 N = NA + t * E;
+	float n = dot(Q - t * D, N) / length(N);
+	float hin = h.z + t * (h.w - h.z);
+	float hb = n > 0.0 ? hin : h.x + t * (h.y - h.x);
+	float soft = n > 0.0 ? 1.0 - smoothstep(hin, hin + ARM_FEATHER_IN, n) : 0.0;
+	return vec4(t, n, step(abs(n), hb), soft);
+}
+
+bool armRegion(vec2 x)
+{
+	return x.x < 3950.0 || (x.y > 1500.0 && x.x < 4400.0) || (x.y > 1870.0 && x.x < 4560.0);
+}
+
+@@ARMPOSE@@
+#endif
+
 // ---- WE shake (rigs): no noise, friction 1 1, bounds 0 1, direction centre, time-offset map ----
 float rigWave(float speed, float phase01)
 {
@@ -178,7 +302,7 @@ vec2 opHair(vec2 p)
 	if (inBox(p, BOX_HAIR))
 	{
 		vec4 a = texSample2D(g_Texture1, p);
-		p += rigWave(HAIR_SPEED, a.b) * HAIR_AMP2 * flowOf(a.rg);
+		p += rigWave(HAIR_SPEED, a.b) * HAIR_AMP2 * (1.0 + BRISTLE * g_Loud) * flowOf(a.rg);
 	}
 #endif
 	return p;
@@ -193,13 +317,9 @@ vec2 opTail(vec2 p)
 		vec4 b = texSample2D(g_Texture2, p);
 		float sway = sin(TAIL_SPEED * g_Time + phase) * 0.996;
 		float f = clamp(g_Follow, -1.0, 1.0);
-		float fd = clamp(g_FollowDown, 0.0, 1.0);
-		// follow field: one shape, 16 bits over b (hi) and a (lo); linear filtering commutes with
-		// this. Lean = f * shape along x, drop = fd * shape along y (TAIL_DROP_AMP2 = followdrop x
-		// the lean amplitude, in v units)
+		// follow field: x only, 16 bits over b (hi) and a (lo); linear filtering commutes with this
 		float fx = (dot(b.ba, vec2(65280.0, 255.0)) - 32640.0) / 32640.0;
-		p += sway * (1.0 - max(abs(f), fd)) * TAIL_AMP2 * flowOf(b.rg)
-			- fx * vec2(f * TAIL_FOLLOW_AMP2, fd * TAIL_DROP_AMP2);
+		p += sway * (1.0 - abs(f)) * TAIL_AMP2 * flowOf(b.rg) - f * TAIL_FOLLOW_AMP2 * vec2(fx, 0.0);
 	}
 #endif
 	return p;
@@ -222,11 +342,85 @@ vec2 opBelly(vec2 p)
 #if R_BELLY
 	if (inBox(p, BOX_BELLY))
 	{
+		vec2 p0 = p;
 		float phase = texSample2D(g_Texture3, p).a;
-		vec2 flow = texSample2D(g_Texture4, p).rg;
-		p += rigWave(BELLY_SPEED, phase) * BELLY_AMP2 * flowOf(flow);
+		vec2 fl = flowOf(texSample2D(g_Texture4, p).rg);
+		// breathing (doubled) + bass heave: the same outward field, the heave without the wave
+		p += (rigWave(BELLY_SPEED, phase) * BREATH_GAIN + HEAVE_GAIN * g_Bass) * BELLY_AMP2 * fl;
+		// muscle ripple: stripe tensor T from the fitted field, slide by T * RIP_DIR (no stripe sign needed)
+		float m = smoothstep(0.0, 0.3 * RIP_FLOWMAX, length(fl));
+		if (m > 0.0)
+		{
+			vec2 u = (p0 - RIP_CENTER) * ARM_PX / RIP_SCALE;
+			vec4 q1 = vec4(1.0, u.x, u.y, u.x * u.x);
+			vec3 q2 = vec3(u.x * u.y, u.y * u.y, u.x * u.x * u.x);
+			vec3 q3 = vec3(u.x * u.x * u.y, u.x * u.y * u.y, u.y * u.y * u.y);
+			vec2 cs2 = vec2(dot(RIP_C0, q1) + dot(RIP_C1, q2) + dot(RIP_C2, q3),
+				dot(RIP_S0, q1) + dot(RIP_S1, q2) + dot(RIP_S2, q3));
+			vec2 n = cs2 / max(length(cs2), 0.5);
+			vec2 tg = 0.5 * (RIP_DIR + vec2(n.x * RIP_DIR.x + n.y * RIP_DIR.y, n.y * RIP_DIR.x - n.x * RIP_DIR.y));
+			float ph = RIP_K * dot(p0 * ARM_PX, RIP_DIR) - RIP_W * g_Time;
+			p += m * RIP_AMP * (1.0 + 0.5 * g_Loud) * sin(ph) * tg / ARM_PX;
+		}
 	}
 #endif
+	return p;
+}
+
+// Weight shift: a slow lean of the whole body about its pinned bottom-right corner.
+vec2 opLean(vec2 p)
+{
+#if R_HB
+	vec2 d = p * ARM_PX - LEAN_PIVOT;
+	float a = LEAN_ANGLE * sin(LEAN_SPEED * g_Time);
+	vec2 r = rot2(d, vec2(cos(a), -sin(a))) - d;
+	r.x *= smoothstep(0.0, LEAN_FADE, -d.x);
+	r.y *= smoothstep(0.0, LEAN_FADE, -d.y);
+	p += r / ARM_PX;
+#endif
+	return p;
+}
+
+// Jaw snap: the lower jaw (mouth line .. neck, chin tendrils included) turns about its hinge. Wide
+// feathers (80 px) at the snout tip and the neck keep the ink strain at the 1.15 overshoot <= 0.56
+// (a 15 px feather tore the tendril roots: numpy mirror, 2026-11-09).
+vec2 opJaw(vec2 p)
+{
+#if R_FACE
+	if (g_Jaw > 0.001)
+	{
+		vec2 x = p * ARM_PX;
+		vec2 d = x - JAW_HINGE;
+		float side = max(smoothstep(-40.0, 40.0, dot(x - JAW_MOUTH_A, JAW_MOUTH_N)), smoothstep(1295.0, 1375.0, x.y));
+		float m = side * smoothstep(4445.0, 4365.0, x.x) * smoothstep(1035.0, 1085.0, x.y)
+			* smoothstep(580.0, 520.0, length(d)) * smoothstep(3990.0, 4030.0, x.x);
+		if (m > 0.0)
+		{
+			float a = -JAW_OPEN * g_Jaw * m;
+			p = (JAW_HINGE + rot2(d, vec2(cos(a), sin(a)))) / ARM_PX;
+		}
+	}
+#endif
+	return p;
+}
+
+vec2 lookUv(float px)
+{
+	return vec2(g_LookX, g_LookY) * px / ARM_PX;
+}
+
+// Eye look + blink, last in the forward chain of a spin eye: undone before the spin.
+vec2 eyeMod(vec2 p, vec2 c, float rpx, float lookPx, float blink)
+{
+	vec2 d = (p - c) * ARM_PX;
+	float r2 = dot(d, d) / (rpx * rpx);
+	if (r2 < 1.0)
+	{
+		float prof = (1.0 - r2) * (1.0 - r2);
+		d -= vec2(g_LookX, g_LookY) * lookPx * prof;
+		d.y /= 1.0 - BLINK_SQUASH * blink;
+		p = c + d / ARM_PX;
+	}
 	return p;
 }
 
@@ -327,6 +521,8 @@ vec2 opWaves(vec2 p, float mask)
 // Rigs (applied in reverse: Face, Belly, Head & Body, Tail, Hair).
 vec2 walkRigs(vec2 p)
 {
+	p = opLean(p);
+	p = opJaw(p);
 	p = opFace(p);
 	p = opBelly(p);
 	p = opHeadBody(p);
@@ -363,25 +559,32 @@ vec2 walkMid(vec2 p, ANIM_PARAMS)
 	p = opTwirl(p, W1_CENTER, W1_AXIS, W1_RATIO, W1_SIZE, W1_FEATHER, aMisc.x);
 #endif
 #if E_I2 && LAYOUT != 2
-	if (inBox(p, BOX_I2)) p = opIris(p, texSample2D(g_Texture6, p).g, aIris.zw);
+	if (inBox(p, BOX_I2)) p = opIris(p, texSample2D(g_Texture6, p).g, aIris.zw - lookUv(LOOK_IRIS));
 #endif
 #if E_F1
-	if (inBox(p, BOX_F1)) p = opFoliage(p, texSample2D(g_Texture6, p).b, F1_NSCALE, F1_NDIR, F1_DIR, F1_AMP0, F1_PHASE, F1_SPEED, F1_POWER);
+	if (inBox(p, BOX_F1))
+	{
+		float gm = texSample2D(g_Texture6, p).b;
+		p = BLUR_CENTER + (p - BLUR_CENTER) * (1.0 - GILL_FLARE * g_Loud * gm);   // gills flare when loud
+		p = opFoliage(p, gm, F1_NSCALE, F1_NDIR, F1_DIR, F1_AMP0, F1_PHASE, F1_SPEED, F1_POWER);
+	}
 #endif
 #if E_I1
-	if (inBox(p, BOX_I1)) p = opIris(p, texSample2D(g_Texture6, p).r, aIris.xy);
+	if (inBox(p, BOX_I1)) p = opIris(p, texSample2D(g_Texture6, p).r, aIris.xy - lookUv(LOOK_IRIS));
 #endif
 	return p;
 }
 
 // A spin step on the (pA, pB, w) pair: colour = mix(X(pA), X(pB), w).
 void spinStep(inout vec2 pA, inout vec2 pB, inout float w, inout float split,
-	vec2 center, vec2 axis, float ratio, float size, float feather, vec2 spin)
+	vec2 center, vec2 axis, float ratio, float size, float feather, vec2 spin, vec2 eye)
 {
 	float m = spinMask(pA, center, axis, ratio, size, feather);
 	if (m > 0.0)
 	{
-		vec2 q = spinPoint(pA, center, axis, ratio, spin);
+		// look + blink (eye.x = look px, eye.y = blink), then the spin where the point still is in the disc
+		vec2 e = eyeMod(pA, center, size * ARM_PX.y, eye.x, eye.y);
+		vec2 q = mix(e, spinPoint(e, center, axis, ratio, spin), spinMask(e, center, axis, ratio, size, feather));
 		if (m >= 1.0)
 		{
 			pA = q;
@@ -402,7 +605,8 @@ void spinStep(inout vec2 pA, inout vec2 pB, inout float w, inout float split,
 		float mb = spinMask(pB, center, axis, ratio, size, feather);
 		if (mb > 0.0)
 		{
-			pB = mix(pB, spinPoint(pB, center, axis, ratio, spin), mb);
+			vec2 eb = eyeMod(pB, center, size * ARM_PX.y, eye.x, eye.y);
+			pB = mix(pB, mix(eb, spinPoint(eb, center, axis, ratio, spin), spinMask(eb, center, axis, ratio, size, feather)), mb);
 		}
 	}
 }
@@ -428,10 +632,10 @@ vec4 readTex(vec2 p, ANIM_PARAMS)
 vec4 walkEarly(vec2 pA, vec2 pB, float w, float split, ANIM_PARAMS)
 {
 #if E_S2
-	spinStep(pA, pB, w, split, S2_CENTER, S2_AXIS, S2_RATIO, S2_SIZE, S2_FEATHER, aSpin12.zw);
+	spinStep(pA, pB, w, split, S2_CENTER, S2_AXIS, S2_RATIO, S2_SIZE, S2_FEATHER, aSpin12.zw, vec2(LOOK_BIG, g_Blink));
 #endif
 #if E_S1
-	spinStep(pA, pB, w, split, S1_CENTER, S1_AXIS, S1_RATIO, S1_SIZE, S1_FEATHER, aSpin12.xy);
+	spinStep(pA, pB, w, split, S1_CENTER, S1_AXIS, S1_RATIO, S1_SIZE, S1_FEATHER, aSpin12.xy, vec2(LOOK_BIG, g_Blink));
 #endif
 	vec4 c = readTex(pA, ANIM_ARGS);
 	if (split > 0.5)
@@ -450,10 +654,10 @@ vec4 chain(vec2 p, ANIM_PARAMS)
 	float w = 0.0;
 	float split = 0.0;
 #if E_S4
-	spinStep(p, pB, w, split, S4_CENTER, S4_AXIS, S4_RATIO, S4_SIZE, S4_FEATHER, aSpin34.zw);
+	spinStep(p, pB, w, split, S4_CENTER, S4_AXIS, S4_RATIO, S4_SIZE, S4_FEATHER, aSpin34.zw, vec2(LOOK_SMALL, 0.0));
 #endif
 #if E_S3
-	spinStep(p, pB, w, split, S3_CENTER, S3_AXIS, S3_RATIO, S3_SIZE, S3_FEATHER, aSpin34.xy);
+	spinStep(p, pB, w, split, S3_CENTER, S3_AXIS, S3_RATIO, S3_SIZE, S3_FEATHER, aSpin34.xy, vec2(LOOK_SMALL, 0.0));
 #endif
 	p = walkMid(p, ANIM_ARGS);
 	if (split > 0.5)
@@ -473,7 +677,7 @@ vec4 preBlur(vec2 q, ANIM_PARAMS)
 
 vec4 kPre(vec2 p, ANIM_PARAMS)
 {
-	if (inBox(p, BOX_I2)) p = opIris(p, texSample2D(g_Texture6, p).g, aIris.zw);
+	if (inBox(p, BOX_I2)) p = opIris(p, texSample2D(g_Texture6, p).g, aIris.zw - lookUv(LOOK_IRIS));
 	vec4 c = preBlur(p, ANIM_ARGS);
 	if (inBox(p, BOX_BLUR))
 	{
@@ -498,6 +702,8 @@ vec4 kPre(vec2 p, ANIM_PARAMS)
 
 void main() {
 	vec2 uv = v_TexCoord.zw;                         // full uv of this output pixel
+	// colour split: on beats a colour layer drifts further from K along its own offset (and scale)
+	uv -= g_Beat * SPLIT_GAIN * (g_Split.xy + g_Split.z * (uv - vec2(0.5, 0.5)));
 	vec4 aSpin12 = v_Spin12;
 	vec4 aSpin34 = v_Spin34;
 	vec4 aIris = v_Iris;
@@ -522,9 +728,59 @@ void main() {
 	{
 		vec2 uvR = LENS_CENTER + base * (1.0 + (LENS_K + LENS_CA) * len2);
 		vec2 uvB = LENS_CENTER + base * (1.0 + (LENS_K - LENS_CA) * len2);
-		c = chain(uvG, ANIM_ARGS);
-		c.r = chain(uvR, ANIM_ARGS).r;
-		c.b = chain(uvB, ANIM_ARGS).b;
+		bool posed = false;
+		// the rest of the layer: pre-arm sink, then the joint fan around the arm's base
+		vec2 rG = uvG;
+		if (g_ArmPose > 0.0005)
+		{
+			vec2 q = uvG * ARM_PX;
+			float w = armBelow(q);
+			rG = armFan(armSink(q, g_ArmPose, w), g_ArmPose, w) / ARM_PX;
+		}
+		vec2 rR = rG + (uvR - uvG);
+		vec2 rB = rG + (uvB - uvG);
+#if R_TAIL
+		if (g_ArmPose > 0.0005 && inBox(uvG, ARM_BOX))
+		{
+			// the arm (moved) over the rest of the layer (with the arm's old place emptied)
+			posed = true;
+			vec4 rot = CAST4(0.0);
+			vec4 pz = armPose(uvG * ARM_PX, rG * ARM_PX, g_ArmPose, rot);   // xy = arm source px, z = in the posed band
+			// The band tests run on the points the chain really reads, after the rigs (mouse lean, sway):
+			// the old place hides exactly the arm texture it would show, and the moved arm shows only arm
+			// texture. Testing the unwarped points left a ghost of the tip mid-reach (lean pushed it out of
+			// the narrow head-side band, 2026-11-09 recording).
+			vec2 hb = armRestBand(walkRigs(rG) * ARM_PX);
+			float hide = max(hb.x, hb.y * min(1.0, g_ArmPose / 0.2));
+			vec4 rest = CAST4(0.0);
+			if (hide < 0.999)
+			{
+				rest = chain(rG, ANIM_ARGS);
+				rest.r = chain(rR, ANIM_ARGS).r;
+				rest.b = chain(rB, ANIM_ARGS).b;
+				rest.a *= 1.0 - hide;   // the old arm's place: hidden, fading back in on the head side
+			}
+			c = rest;
+			if (pz.z > 0.5 && armRestBand(walkRigs(pz.xy / ARM_PX) * ARM_PX).x > 0.5)
+			{
+				// chromatic aberration offsets turn with the arm
+				vec2 sp = pz.xy / ARM_PX;
+				vec2 dR = rot2((uvR - uvG) * ARM_PX, rot.xy) / ARM_PX;
+				vec2 dB = rot2((uvB - uvG) * ARM_PX, rot.xy) / ARM_PX;
+				vec4 arm = chain(sp, ANIM_ARGS);
+				arm.r = chain(sp + dR, ANIM_ARGS).r;
+				arm.b = chain(sp + dB, ANIM_ARGS).b;
+				float o = arm.a + rest.a * (1.0 - arm.a);
+				c = vec4((arm.rgb * arm.a + rest.rgb * rest.a * (1.0 - arm.a)) / max(o, 0.00001), o);
+			}
+		}
+#endif
+		if (!posed)
+		{
+			c = chain(rG, ANIM_ARGS);
+			c.r = chain(rR, ANIM_ARGS).r;
+			c.b = chain(rB, ANIM_ARGS).b;
+		}
 		c.a *= clip;
 	}
 #endif

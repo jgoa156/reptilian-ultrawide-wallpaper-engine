@@ -23,6 +23,11 @@
 //    it draws the layer image, and this effect replaces that image, so the layer alpha is lost.
 //  * Blur: g_Blur canvas px (user property `mandalablur`, default 0), a 12-tap disc on the ink
 //    read from a matching mip level.
+//  * The eye (g_Eye, user property `mandalaeye`): a procedural reptile eye in the mandala's centre,
+//    drawn in the same black ink. It clears an almond window (and a thin halo) in the mandala, has a
+//    double lid line with 13 spikes, a ringed iris whose striations turn with the mandala's spin, a
+//    slit pupil that widens with the bass, and it blinks. The controller script points the iris at
+//    the cursor (g_EyeLookX/Y) and drives the blink. Its opacity is its own (`mandalaeyeopacity`).
 //
 // The layer itself is a transparent canvas-sized image (it only sets the output size). All
 // coordinates are in mandala radii: the mandala spans the unit disc.
@@ -75,6 +80,20 @@ uniform vec2 g_MoshGrid; // {"material":"moshgrid","label":"Datamosh blocks","de
 uniform float g_GlitchSlices; // {"material":"glitchslices","label":"Glitch slices (0 = off)","default":0,"range":[0,7]}
 uniform float g_GlitchSeed; // {"material":"glitchseed","label":"Glitch seed","default":0,"range":[0,1000]}
 uniform float g_GlitchShift; // {"material":"glitchshift","label":"Glitch shift (radii)","default":0.1,"range":[0,1]}
+
+uniform float g_Eye; // {"material":"eye","label":"Centre eye (0/1)","default":1,"range":[0,1]}
+uniform float g_EyeOpacity; // {"material":"eyeopacity","label":"Centre eye opacity (%)","default":35,"range":[0,100]}
+uniform float g_EyeLookX; // {"material":"eyelookx","label":"Eye look x (-1..1, set by script)","default":0,"range":[-1,1]}
+uniform float g_EyeLookY; // {"material":"eyelooky","label":"Eye look y (-1..1, screen down, set by script)","default":0,"range":[-1,1]}
+uniform float g_EyeBlink; // {"material":"eyeblink","label":"Eye blink (0..1, set by script)","default":0,"range":[0,1]}
+
+#define EYE_R 0.17            // half width of the almond, mandala radii
+#define EYE_H 0.48            // half height at the middle, in EYE_R
+#define EYE_LINE 0.022        // lid line half thickness, in EYE_R
+#define EYE_IRIS 0.4          // iris radius, in EYE_R
+#define EYE_LOOK vec2(0.42, 0.16)   // how far the iris travels, in EYE_R
+#define EYE_PUPIL_W 0.07      // slit half width, in EYE_R (x (1 + 1.4 bass))
+#define EYE_HALO 0.44         // the mandala fades back in over this distance outside the lid, in EYE_R
 
 float hash11(float x)
 {
@@ -142,6 +161,50 @@ float glitchShift(float y)
 	return shift;
 }
 
+// The centre eye at p (screen-aligned mandala radii, centred). Returns (eye ink, how much of the
+// mandala it replaces).
+vec2 eye(vec2 p, float spin, float bass)
+{
+	float aa = 0.0015 / EYE_R;                                       // ~1.5 canvas px
+	vec2 e = p / EYE_R;
+	float open = max(1.0 - g_EyeBlink, 0.03);
+	float hl = EYE_H * max(1.0 - e.x * e.x, 0.0);
+	float slope = 2.0 * EYE_H * e.x * open;
+	float f = (abs(e.y) - hl * open) / sqrt(1.0 + slope * slope);   // ~distance to the lids, < 0 inside
+	if (abs(e.x) >= 1.0)
+	{
+		f = length(vec2(abs(e.x) - 1.0, e.y));                        // pointed corners
+	}
+	float lid = 1.0 - smoothstep(EYE_LINE - aa, EYE_LINE + aa, abs(f));
+	float lid2 = (1.0 - smoothstep(0.009 - aa, 0.009 + aa, abs(f - 0.11))) * step(abs(e.x), 1.08);
+	// 13 spikes over the lids (the mandala is 13-fold), tapering outward
+	float sx = e.x * 6.5 + 6.5;
+	float sp = abs(frac(sx) - 0.5);
+	float sh = saturate((f - 0.11) / 0.3);                            // 0 at the outer lid line .. 1 at the tip
+	float sw = 0.17 * (1.0 - sh) * (1.0 - sh);                      // curved taper
+	float spike = step(0.0, f - 0.11) * step(sh, 0.999) * (1.0 - smoothstep(sw - aa, sw + aa, sp))
+		* step(abs(e.x), 0.97);
+	float inside = 1.0 - smoothstep(-aa, aa, f);
+	// iris: limbal ring, an inner ring, striations turning with the spin
+	vec2 d = e - vec2(g_EyeLookX, g_EyeLookY) * EYE_LOOK;
+	float r = length(d);
+	float ang = atan2(d.x, -d.y) + spin;
+	float iris = 1.0 - smoothstep(EYE_IRIS - aa, EYE_IRIS + aa, r);
+	float limbus = smoothstep(EYE_IRIS - 0.075, EYE_IRIS - 0.045, r);
+	float ring = 1.0 - smoothstep(0.012 - aa, 0.012 + aa, abs(r - EYE_IRIS * 0.62));
+	float stri = step(0.58, 0.5 + 0.5 * cos(ang * 26.0 + 2.5 * sin(r * 38.0 - spin * 2.0)))
+		* smoothstep(EYE_IRIS * 0.22, EYE_IRIS * 0.4, r);
+	float irisInk = iris * max(max(limbus, ring), stri);
+	// slit pupil, wider with the bass
+	float pw = EYE_PUPIL_W * (1.0 + 1.4 * bass);
+	float pu = length(vec2(d.x / pw, d.y / (EYE_IRIS * 0.86)));
+	float pupil = 1.0 - smoothstep(1.0 - aa / pw, 1.0 + aa / pw, pu);
+	float glint = 1.0 - smoothstep(0.055 - aa, 0.055 + aa, length(d - vec2(-0.12, -0.13)));
+	float eInk = max(max(lid, max(lid2, spike)), inside * max(irisInk, pupil) * (1.0 - glint));
+	float cover = 1.0 - smoothstep(0.0, EYE_HALO, f);
+	return vec2(eInk, cover);
+}
+
 float render(vec2 uv)
 {
 	float angle = mix(g_Time / max(g_TurnPeriod, 0.1), g_SpinPhase, step(0.5, g_SpinScripted)) * M_PI_2;
@@ -165,6 +228,11 @@ float render(vec2 uv)
 	vec2 src = q / ((1.0 + g_Bulge * lv) * (1.0 + g_BassScale * bass));
 	float level = g_Floor + (1.0 - g_Floor) * lv;
 	float a = inkBlur(src) * side * mix(g_MinOpacity, g_MaxOpacity, level) * 0.01;
+	if (g_Eye > 0.5)
+	{
+		vec2 ey = eye(pos / (1.0 + g_BassScale * bass), angle, bass);
+		a = mix(a, ey.x * g_EyeOpacity * 0.01, ey.y);
+	}
 
 	return a;
 }
