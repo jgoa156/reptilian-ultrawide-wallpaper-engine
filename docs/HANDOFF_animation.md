@@ -655,6 +655,14 @@ time (it only brought up the WE UI), so nothing was screenshotted; the user relo
 - For a cleaner loop: re-capture with music paused (the idle 13-fold mandala repeats every 3.0 s at
   39 s per turn) and a cursor sweep period of exactly 3.0 s; then --xfade 0.
 
+### 2026-11-10: preview GIF v2 (installed)
+- `preview.gif` = `reports/workshop_preview_256_v2.gif`: 256x256, 30 frames @ 10 fps (3.0 s loop),
+  989,129 bytes. Old one in `backups/2026-11-10_before_gif_preview_v2/`.
+- With the living-creature motion nearly every pixel changes, so 15 fps stayed >= 1.3 MB; 10 fps,
+  thresh 20 fits. Capture with music on and the cursor sweep period exactly 3 s (capture script
+  `-Period 3`), so the arm pose matches at the seam; `--start 3.53 --dur 3.0 --fps 10 --thresh 20
+  --xfade 3`. A 10 s sweep with --xfade 8 ghosted a double arm at the seam.
+
 ## 13. Performance pass (2026-11-07, done): `scripts/optimize_creature.py`
 
 Goal (user): "consumes as few computing resources as possible while keeping the best quality".
