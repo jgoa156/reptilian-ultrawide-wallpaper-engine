@@ -981,7 +981,16 @@ Tuning constants are `#define`s at the top of `creature_warp.frag.in` (after @@C
 | Mandala eye | `mandala_spectrum.frag` eye() | almond window + halo, double lid + 13 spikes, ringed iris turning with the spin, slit pupil widening with bass, blink; look/blink from `mandala_controller.js` |
 
 User properties (add_living_creature.py): `creaturemusic`, `mandalaeye`, `mandalaeyeopacity` (35).
-`mandalaeye` is the eye's master switch. It is read by mandala_controller.js's applyUserProperties, which sets the shader's `eye` constant (left unbound in the scene). When it is off, the shader skips eye() and the script skips eyeUpdate(). Turning it off parks the eye centred and open.
+**2026-11-10: the mandala eye is SHELVED** (user: "completely disable the eye in the mandala for now,
+we're not done with the design yet"). `EYE_ENABLED = false` in mandala_controller.js, the scene's
+`eye` constant is 0, and add_living_creature.py removes `mandalaeye`/`mandalaeyeopacity` from
+project.json (their definitions are kept there as a comment). The shader code and eyeUpdate() stay.
+To bring it back: restore the two PROPS, set EYE_ENABLED true, `eye` 1.0 and re-bind `eyeopacity`
+in optimize_creature.py, and put it back in the README. Verified in WE and pushed 2026-11-10.
+**2026-11-10: mouth smoke thinned** (user: "too dense"): rate 36 -> 16, alpha 0.22-0.38 -> 0.06-0.13,
+size 70-140 -> 50-110, maxcount 48 -> 24, grows 0.5 -> 2.0 (was 0.4 -> 1.6). It is the jaw-snap puff
+on hard bass hits only, not continuous breath. Backup `backups/2026-11-10_before_smoke_eye_off/`.
+(Before shelving:) `mandalaeye` is the eye's master switch. It is read by mandala_controller.js's applyUserProperties, which sets the shader's `eye` constant (left unbound in the scene). When it is off, the shader skips eye() and the script skips eyeUpdate(). Turning it off parks the eye centred and open.
 `max_warp_px` adds the new motions (crop/support margins), reading the template's #defines.
 Checks: WebGL strict compile of all 7 layouts OK (scratch mkfrag.py makes a strict variant: defined()
 for feature macros, int literals -> float); arm parity unchanged. Numpy mirror: scratch living_check.py.

@@ -162,25 +162,6 @@
                 "text": "Creature reacts to music (jaw, breath, colour split)",
                 "type": "bool",
                 "value": true
-            },
-            "mandalaeye": {
-                "index": 16,
-                "order": 116,
-                "text": "Eye in the mandala's centre (follows the cursor)",
-                "type": "bool",
-                "value": true
-            },
-            "mandalaeyeopacity": {
-                "index": 17,
-                "order": 117,
-                "text": "Mandala eye opacity (%)",
-                "type": "slider",
-                "min": 0,
-                "max": 100,
-                "step": 1,
-                "precision": 0,
-                "value": 35,
-                "condition": "mandalaeye.value == true"
             }
         },
         "supportsaudioprocessing": true

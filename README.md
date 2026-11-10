@@ -24,15 +24,13 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
 - **Music**: the magenta and cyan ink layers pulse with the audio. Five blue bands across the chest
   and tail light up one frequency band each, and an extra cyan layer reacts to the bass. The
   creature reacts too: the chest heaves with the bass, the jaw snaps open on hard hits and puffs
-  a little black smoke, the gills flare and the hair bristles when it is loud, and the colour
+  a faint wisp of smoke, the gills flare and the hair bristles when it is loud, and the colour
   layers split apart on beats.
 - **Spectrum mandala** (the 13-fold Choronzon mandala behind the creature) turns slowly and
   breathes when there is no sound. With music it splits into 13 pieces, one per frequency band,
   and adds a bass swell, datamosh frames and beat glitches. Optionally its spin follows the song's
   tempo: the script detects the BPM live (onset autocorrelation, 70–160 BPM) and turns the wheel
-  one piece every N beats. In its centre sits an eye of its own: an almond with spiked double lids,
-  a ringed iris that turns with the spin and a slit pupil that widens with the bass. It follows the
-  cursor and blinks.
+  one piece every N beats.
 
 ## User properties
 | Property | Default |
@@ -47,7 +45,6 @@ height, pinned to the bottom-right corner (WE's flip option mirrors it to the le
 | Mandala spin follows BPM (on/off) + Beats per piece (1–16, 13 pieces per turn) | off, 4 |
 | Smoke behind the creature (on/off, both edges) + Smoke opacity (%, 0–200) | on, 100 |
 | Creature reacts to music (on/off: jaw, heave, gills, hair, colour split, mouth smoke) | on |
-| Eye in the mandala's centre (on/off, off removes it completely) + Mandala eye opacity (%) | on, 35 |
 
 ## Install
 Copy `wallpaper/` into `steamapps/common/wallpaper_engine/projects/myprojects/<any name>/` and
@@ -110,7 +107,7 @@ change made in the WE editor on `wallpaper/` (layers, effects, particles) lasts 
 next run. For lasting changes, edit the source project (it opens in the WE editor too), then run
 the optimiser. `project.json` (user properties, title, preview) is not rebuilt; the glitch
 and BPM-spin properties come from `scripts/add_mandala_properties.py`, the smoke layer and its two
-properties from `scripts/add_edge_smoke.py`, the mouth smoke and the music/eye properties from
+properties from `scripts/add_edge_smoke.py`, the mouth smoke and the music property from
 `scripts/add_living_creature.py` (run order: `add_edge_smoke.py`, `add_living_creature.py`,
 `optimize_creature.py`). The mandala's controller script is `scripts/mandala_controller.js` and
 the creature's per-frame values (breath, jaw, blinks, look) come from `scripts/creature_driver.js`,

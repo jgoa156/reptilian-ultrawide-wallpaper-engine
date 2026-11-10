@@ -71,7 +71,11 @@ const MOSH_MAX = 0.3;               // datamosh opacity cap (was 1)
 // spin period, and the spin following the song's tempo (beats per piece, 13 pieces per turn)
 let uGlitchOn = true, uGlitchAmt = 1, uMoshOn = true, uMoshAmt = 1;
 let uPeriod = 39, uBpmSpin = false, uBeatsPerPiece = 4;
-let uEye = true;                    // the centre eye (`mandalaeye`); the shader's `eye` is set from here
+// the centre eye (`mandalaeye`); the shader's `eye` is set from here. Shelved 2026-11-10 until its
+// design is done: EYE_ENABLED false keeps it off whatever the user property says (the property is
+// removed from project.json too, see scripts/add_living_creature.py)
+const EYE_ENABLED = false;
+let uEye = EYE_ENABLED;
 
 export function applyUserProperties(changed) {
 	if (changed.mandalaglitch !== undefined) uGlitchOn = !!changed.mandalaglitch;
@@ -82,7 +86,7 @@ export function applyUserProperties(changed) {
 	if (changed.mandalabpmspin !== undefined) uBpmSpin = !!changed.mandalabpmspin;
 	if (changed.mandalabeatsperpiece !== undefined) uBeatsPerPiece = Math.max(changed.mandalabeatsperpiece, 1);
 	if (changed.mandalaeye !== undefined) {
-		const on = !!changed.mandalaeye;
+		const on = EYE_ENABLED && !!changed.mandalaeye;
 		if (!on && uEye) eyeReset();
 		uEye = on;
 	}

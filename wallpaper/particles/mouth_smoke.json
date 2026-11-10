@@ -51,7 +51,7 @@
 			"id": 7,
 			"name": "boxrandom",
 			"origin": "0 0 0",
-			"rate": 36,
+			"rate": 16,
 			"speedmax": 0,
 			"speedmin": 0
 		}
@@ -67,8 +67,8 @@
 		{
 			"id": 3,
 			"name": "sizerandom",
-			"min": 70,
-			"max": 140
+			"min": 50,
+			"max": 110
 		},
 		{
 			"id": 4,
@@ -79,8 +79,8 @@
 		{
 			"id": 5,
 			"name": "alpharandom",
-			"min": 0.22,
-			"max": 0.38
+			"min": 0.06,
+			"max": 0.13
 		},
 		{
 			"id": 6,
@@ -102,7 +102,7 @@
 		}
 	],
 	"material": "materials/edge_smoke.json",
-	"maxcount": 48,
+	"maxcount": 24,
 	"operator": [
 		{
 			"id": 8,
@@ -127,8 +127,8 @@
 			"name": "sizechange",
 			"starttime": 0,
 			"endtime": 1,
-			"startvalue": 0.4,
-			"endvalue": 1.6
+			"startvalue": 0.5,
+			"endvalue": 2.0
 		},
 		{
 			"id": 11,

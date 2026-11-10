@@ -707,8 +707,8 @@ def optimize_mandala(scene):
     # controller script, so switching it off also stops the script's eye work; opacity is bound
     # straight to `mandalaeyeopacity` (both properties: scripts/add_living_creature.py)
     fx["passes"][0]["constantshadervalues"].update({
-        "eye": 1.0,
-        "eyeopacity": {"user": "mandalaeyeopacity", "value": 35.0},
+        "eye": 0.0,                   # shelved 2026-11-10 (mandala_controller.js EYE_ENABLED)
+        "eyeopacity": 35.0,
         "eyelookx": 0.0, "eyelooky": 0.0, "eyeblink": 0.0})
     frag =(SHADER_SRC / "mandala_spectrum.frag").read_text(encoding="utf-8")
     out = (frag.replace("0.0).a * inside", "0.0).r * inside")

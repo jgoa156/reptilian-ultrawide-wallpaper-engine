@@ -43,27 +43,27 @@ PARTICLE = {
         "id": 7,
         "name": "boxrandom",
         "origin": "0 0 0",
-        "rate": 36,
+        "rate": 16,                       # 2026-11-10: was 36, read as a dense black blob
         "speedmax": 0,
         "speedmin": 0,
     }],
     "flags": 0,
     "initializer": [
         {"id": 2, "name": "lifetimerandom", "min": 1.3, "max": 2.2},
-        {"id": 3, "name": "sizerandom", "min": 70, "max": 140},
+        {"id": 3, "name": "sizerandom", "min": 50, "max": 110},
         {"id": 4, "name": "colorrandom", "min": "0 0 0", "max": "10 10 12"},
-        {"id": 5, "name": "alpharandom", "min": 0.22, "max": 0.38},
+        {"id": 5, "name": "alpharandom", "min": 0.06, "max": 0.13},      # was 0.22..0.38
         {"id": 6, "name": "velocityrandom", "min": "-150 -60 0", "max": "-50 30 0"},
         {"id": 12, "name": "rotationrandom", "min": "0 0 0", "max": "0 0 6.2831"},
         {"id": 13, "name": "angularvelocityrandom", "min": "0 0 -0.8", "max": "0 0 0.8"},
     ],
     "material": "materials/edge_smoke.json",
-    "maxcount": 48,
+    "maxcount": 24,
     "operator": [
         {"id": 8, "name": "movement", "drag": 1.4, "gravity": "0 40 0"},
         {"id": 14, "name": "angularmovement", "drag": 0, "force": "0 0 0"},
         {"id": 9, "name": "alphafade", "fadeintime": 0.06, "fadeouttime": 0.7},
-        {"id": 10, "name": "sizechange", "starttime": 0, "endtime": 1, "startvalue": 0.4, "endvalue": 1.6},
+        {"id": 10, "name": "sizechange", "starttime": 0, "endtime": 1, "startvalue": 0.5, "endvalue": 2.0},
         {"id": 11, "name": "turbulence", "scale": 0.004, "speedmin": 10, "speedmax": 30, "timescale": 0.4},
     ],
     "renderer": [{"id": 1, "name": "sprite"}],
@@ -73,12 +73,16 @@ PARTICLE = {
 PROPS = {
     "creaturemusic": {"index": 15, "order": 115, "text": "Creature reacts to music (jaw, breath, colour split)",
                       "type": "bool", "value": True},
-    "mandalaeye": {"index": 16, "order": 116, "text": "Eye in the mandala's centre (follows the cursor)",
-                   "type": "bool", "value": True},
-    "mandalaeyeopacity": {"index": 17, "order": 117, "text": "Mandala eye opacity (%)", "type": "slider",
-                          "min": 0, "max": 100, "step": 1, "precision": 0, "value": 35,
-                          "condition": "mandalaeye.value == true"},
 }
+# The mandala's centre eye is shelved until its design is done (user, 2026-11-10): its two properties
+# are removed from project.json and the eye stays off (mandala_controller.js EYE_ENABLED). To bring it
+# back, restore these into PROPS and set EYE_ENABLED = true:
+#   "mandalaeye": {"index": 16, "order": 116, "text": "Eye in the mandala's centre (follows the cursor)",
+#                  "type": "bool", "value": True},
+#   "mandalaeyeopacity": {"index": 17, "order": 117, "text": "Mandala eye opacity (%)", "type": "slider",
+#                         "min": 0, "max": 100, "step": 1, "precision": 0, "value": 35,
+#                         "condition": "mandalaeye.value == true"},
+SHELVED = ("mandalaeye", "mandalaeyeopacity")
 
 
 def write_json(path, obj):
@@ -140,6 +144,8 @@ def main():
         if name in props:
             v = {**v, "value": props[name].get("value", v["value"])}    # keep the user's setting
         props[name] = v
+    for name in SHELVED:
+        props.pop(name, None)
     pj_path.write_text(json.dumps(pj, indent=4, ensure_ascii=False), encoding="utf-8")
     print(f"{NAME} installed after K at world {MOUTH_WORLD}; properties:", ", ".join(PROPS))
 
